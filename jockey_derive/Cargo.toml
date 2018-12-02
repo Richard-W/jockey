@@ -1,0 +1,12 @@
+[package]
+name = "jockey_derive"
+version = "0.0.0"
+authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "0.4.24"
+quote = "0.6.10"
+syn = "0.15.22"

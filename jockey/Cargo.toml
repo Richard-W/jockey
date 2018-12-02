@@ -1,0 +1,6 @@
+[package]
+name = "jockey"
+version = "0.0.0"
+authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
+
+[dependencies]

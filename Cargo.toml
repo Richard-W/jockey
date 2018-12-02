@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+	"jockey",
+	"jockey_derive",
+	"jockey_tests",
+]

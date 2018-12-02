@@ -1,0 +1,9 @@
+[package]
+name = "jockey_tests"
+version = "0.0.0"
+authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
+publish = false
+
+[dependencies]
+jockey = { path = "../jockey" }
+jockey_derive = { path = "../jockey_derive" }
