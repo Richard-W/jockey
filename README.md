@@ -13,8 +13,8 @@ Add the necessary dependencies to your Cargo.toml:
 
 ```toml
 [dependencies]
-jockey = "0.1.0"
-jockey_derive = "0.1.0"
+jockey = "0.2.0"
+jockey_derive = "0.2.0"
 ```
 
 Add the crate declarations to your code:
