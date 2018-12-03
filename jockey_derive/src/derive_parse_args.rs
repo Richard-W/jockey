@@ -59,6 +59,9 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
             let mut result = #struct_ident::new();
             let mut iter = args.iter();
 
+            // Skip first argument which is the executable path.
+            iter.next();
+
             #decl_mandatories
 
             loop {

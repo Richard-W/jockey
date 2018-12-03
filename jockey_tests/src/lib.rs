@@ -25,12 +25,12 @@ impl SimpleArguments {
 
 #[test]
 pub fn parse_simple_arguments() {
-    let args1 = SimpleArguments::parse_args(vec!["--mandatory".into(), "foo".into(), "--flag".into()]).unwrap();
+    let args1 = SimpleArguments::parse_args(vec!["exec".into(), "--mandatory".into(), "foo".into(), "--flag".into()]).unwrap();
     assert_eq!(args1.mandatory, "foo");
     assert_eq!(args1.optional, None);
     assert_eq!(args1.flag, true);
 
-    let args2 = SimpleArguments::parse_args(vec!["--mandatory".into(), "foo".into(), "--flag".into(), "--optional".into(), "bar".into()]).unwrap();
+    let args2 = SimpleArguments::parse_args(vec!["exec".into(), "--mandatory".into(), "foo".into(), "--flag".into(), "--optional".into(), "bar".into()]).unwrap();
     assert_eq!(args2.mandatory, "foo");
     assert_eq!(args2.optional, Some("bar".into()));
     assert_eq!(args2.flag, true);
@@ -38,22 +38,22 @@ pub fn parse_simple_arguments() {
 
 #[test]
 pub fn parse_simple_arguments_errors() {
-    match SimpleArguments::parse_args(vec!["--foo".into(), "--mandatory".into(), "foo".into()]) {
+    match SimpleArguments::parse_args(vec!["exec".into(), "--foo".into(), "--mandatory".into(), "foo".into()]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnknownOption),
     }
 
-    match SimpleArguments::parse_args(vec!["--mandatory".into()]) {
+    match SimpleArguments::parse_args(vec!["exec".into(), "--mandatory".into()]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnexpectedEnd),
     }
 
-    match SimpleArguments::parse_args(vec!["--mandatory".into(), "foo".into(), "--optional".into()]) {
+    match SimpleArguments::parse_args(vec!["exec".into(), "--mandatory".into(), "foo".into(), "--optional".into()]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnexpectedEnd),
     }
 
-    match SimpleArguments::parse_args(vec!["--optional".into(), "foo".into()]) {
+    match SimpleArguments::parse_args(vec!["exec".into(), "--optional".into(), "foo".into()]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::MissingOption),
     }
