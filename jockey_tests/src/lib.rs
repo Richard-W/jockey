@@ -35,3 +35,21 @@ pub fn parse_simple_arguments() {
     assert_eq!(args2.optional, Some("bar".into()));
     assert_eq!(args2.flag, true);
 }
+
+#[test]
+pub fn output_simple_arguments() {
+    let mut args1 = SimpleArguments::new();
+    args1.mandatory = "foo".into();
+    args1.flag = true;
+
+    let expected1: Vec<String> = vec!["--mandatory".into(), "foo".into(), "--flag".into()];
+    assert_eq!(args1.to_args(), expected1);
+
+    let mut args2 = SimpleArguments::new();
+    args2.mandatory = "foo".into();
+    args2.optional = Some("bar".into());
+    args2.flag = true;
+
+    let expected2: Vec<String> = vec!["--mandatory".into(), "foo".into(), "--optional".into(), "bar".into(), "--flag".into()];
+    assert_eq!(args2.to_args(), expected2);
+}
