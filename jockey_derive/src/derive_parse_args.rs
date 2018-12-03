@@ -19,7 +19,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 });
                 check_mandatories.extend(quote! {
                     if !#mandatory_ident {
-                        return Err(jockey::Error::MissingOption);
+                        return Err(jockey::Error::MissingOption(#long_option.into()));
                     }
                 });
                 parser_components.extend(quote! {
@@ -68,7 +68,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 match iter.next() {
                     Some(key) => {
                         #parser_components
-                        return Err(jockey::Error::UnknownOption);
+                        return Err(jockey::Error::UnknownOption(key.clone()));
                     },
                     None => { break; },
                 }

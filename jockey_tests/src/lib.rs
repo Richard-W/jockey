@@ -40,7 +40,7 @@ pub fn parse_simple_arguments() {
 pub fn parse_simple_arguments_errors() {
     match SimpleArguments::parse_args(vec!["exec".into(), "--foo".into(), "--mandatory".into(), "foo".into()]) {
         Ok(_) => panic!(),
-        Err(error) => assert_eq!(error, jockey::Error::UnknownOption),
+        Err(error) => assert_eq!(error, jockey::Error::UnknownOption("--foo".into())),
     }
 
     match SimpleArguments::parse_args(vec!["exec".into(), "--mandatory".into()]) {
@@ -55,7 +55,7 @@ pub fn parse_simple_arguments_errors() {
 
     match SimpleArguments::parse_args(vec!["exec".into(), "--optional".into(), "foo".into()]) {
         Ok(_) => panic!(),
-        Err(error) => assert_eq!(error, jockey::Error::MissingOption),
+        Err(error) => assert_eq!(error, jockey::Error::MissingOption("--mandatory".into())),
     }
 }
 

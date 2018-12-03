@@ -5,17 +5,17 @@ use std::error::Error as StdError;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {
-    UnknownOption,
+    UnknownOption(String),
     UnexpectedEnd,
-    MissingOption,
+    MissingOption(String),
 }
 
 impl error::Error for Error {
     fn description(&self) -> &str {
         match self {
-            Error::UnknownOption => "Unknown option",
+            Error::UnknownOption(_) => "Unknown option",
             Error::UnexpectedEnd => "Unexpected end of arguments vector",
-            Error::MissingOption => "Missing mandatory argument",
+            Error::MissingOption(_) => "Missing mandatory argument",
         }
     }
     
@@ -26,7 +26,11 @@ impl error::Error for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "jockey error: {}", self.description())
+        match self {
+            Error::UnknownOption(which) => write!(f, "{}: {}", self.description(), which),
+            Error::MissingOption(which) => write!(f, "{}: {}", self.description(), which),
+            _ => write!(f, "{}", self.description()),
+        }
     }
 }
 
