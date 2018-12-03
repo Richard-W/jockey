@@ -1,7 +1,8 @@
 [package]
 name = "jockey_derive"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
+publish = false
 
 [lib]
 proc-macro = true
