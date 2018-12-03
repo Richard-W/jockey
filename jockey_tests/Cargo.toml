@@ -4,6 +4,9 @@ version = "0.0.0"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
 publish = false
 
+[lib]
+doc = false
+
 [dependencies]
 jockey = { path = "../jockey" }
 jockey_derive = { path = "../jockey_derive" }

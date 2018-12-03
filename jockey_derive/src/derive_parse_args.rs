@@ -19,14 +19,14 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 });
                 check_mandatories.extend(quote! {
                     if !#mandatory_ident {
-                        panic!("Did not get mandatory argument {}", #long_option);
+                        return Err(jockey::Error::MissingOption);
                     }
                 });
                 parser_components.extend(quote! {
                     if key == #long_option {
                         match iter.next() {
                             Some(val) => result.#field_ident = val.clone(),
-                            None => panic!("Unexpected end of arguments vector"),
+                            None => return Err(jockey::Error::UnexpectedEnd),
                         }
                         #mandatory_ident = true;
                         continue;
@@ -38,7 +38,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 if key == #long_option {
                     match iter.next() {
                         Some(val) => result.#field_ident = Some(val.clone()),
-                        None => panic!("Unexpected end of arguments vector"),
+                        None => return Err(jockey::Error::UnexpectedEnd),
                     }
                     continue;
                 }
@@ -55,7 +55,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
     let struct_ident = &struct_def.ident;
     let result = quote!{
-        fn parse_args(args: Vec<String>) -> #struct_ident {
+        fn parse_args(args: Vec<String>) -> jockey::Result<#struct_ident> {
             let mut result = #struct_ident::new();
             let mut iter = args.iter();
 
@@ -65,7 +65,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 match iter.next() {
                     Some(key) => {
                         #parser_components
-                        panic!("Unknown flag: {}", key);
+                        return Err(jockey::Error::UnknownOption);
                     },
                     None => { break; },
                 }
@@ -73,7 +73,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
             #check_mandatories
 
-            result
+            Ok(result)
         }
     };
     result.into()
