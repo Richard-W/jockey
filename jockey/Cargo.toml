@@ -2,6 +2,7 @@
 name = "jockey"
 version = "0.1.0"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
+license = "MIT"
 publish = false
 
 [dependencies]
