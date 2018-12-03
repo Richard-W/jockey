@@ -30,12 +30,12 @@ struct MyArguments {
 	pub mandatory: String,
 	pub optional: Option<String>,
 	pub flag: bool,
-};
+}
 
 impl MyArguments {
 	fn new() -> Self {
 		MyArguments {
-			mandatory: "",
+			mandatory: "".into(),
 			optional: None,
 			flag: false,
 		}
@@ -46,6 +46,8 @@ impl MyArguments {
 And start using it:
 
 ```rust
+use jockey::Arguments;
+
 fn main() {
 	let args = match MyArguments::parse_args(std::env::args().collect()) {
 		Ok(args) => args,
