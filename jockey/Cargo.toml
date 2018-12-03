@@ -1,7 +1,7 @@
 [package]
 name = "jockey"
 description = "Easy command line parsing for Rust"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
 license = "MIT"
 repository = "https://github.com/richard-w/jockey"
