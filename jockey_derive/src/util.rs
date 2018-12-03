@@ -50,13 +50,15 @@ impl Struct {
 pub struct StructField {
     pub ident: syn::Ident,
     pub ty: Type,
+    pub long_option: String,
 }
 
 impl StructField {
-    pub fn new(ident: syn::Ident, ty: Type) -> Self {
+    pub fn new(ident: syn::Ident, ty: Type, long_option: String) -> Self {
         StructField {
             ident: ident,
             ty: ty,
+            long_option: long_option,
         }
     }
 }
@@ -74,11 +76,11 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
 
     let mut struct_fields: Vec<StructField> = Vec::new();
     for syn_struct_field in syn_struct_fields {
-        let field_ident = syn_struct_field.ident.clone().unwrap();
-        let field_type: Type = syn_struct_field.ty.clone().into();
-        let field = StructField::new(field_ident, field_type);
+        let ident = syn_struct_field.ident.clone().unwrap();
+        let ty: Type = syn_struct_field.ty.clone().into();
+        let long_option = "--".to_string() + &ident.to_string();
 
-        struct_fields.push(field);
+        struct_fields.push(StructField::new(ident, ty, long_option));
     }
 
     Struct::new(struct_ident, struct_fields)

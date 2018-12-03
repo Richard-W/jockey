@@ -9,7 +9,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
     for ref field in struct_def.fields {
         let field_ident = &field.ident;
-        let argument_key = "--".to_string() + &field_ident.to_string();
+        let long_option = &field.long_option;
 
         match field.ty {
             util::Type::MandatoryString => {
@@ -19,11 +19,11 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 });
                 check_mandatories.extend(quote! {
                     if !#mandatory_ident {
-                        panic!("Did not get mandatory argument {}", #argument_key);
+                        panic!("Did not get mandatory argument {}", #long_option);
                     }
                 });
                 parser_components.extend(quote! {
-                    if key == #argument_key {
+                    if key == #long_option {
                         match iter.next() {
                             Some(val) => result.#field_ident = val.clone(),
                             None => panic!("Unexpected end of arguments vector"),
@@ -35,7 +35,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
             },
 
             util::Type::OptionalString => parser_components.extend(quote! {
-                if key == #argument_key {
+                if key == #long_option {
                     match iter.next() {
                         Some(val) => result.#field_ident = Some(val.clone()),
                         None => panic!("Unexpected end of arguments vector"),
@@ -45,7 +45,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
             }),
 
             util::Type::Flag => parser_components.extend(quote! {
-                if (key == #argument_key) {
+                if (key == #long_option) {
                     result.#field_ident = true;
                     continue;
                 }
