@@ -8,7 +8,7 @@ extern crate syn;
 extern crate quote;
 
 mod derive_parse_args;
-mod derive_to_args;
+mod derive_emit_args;
 mod util;
 
 /// Implementation of `#[derive(JockeyArguments)]` (don't use this directly).
@@ -17,7 +17,7 @@ pub fn derive_arguments(tokens: proc_macro::TokenStream) -> proc_macro::TokenStr
     let input = parse_macro_input!(tokens as syn::DeriveInput);
 
     let parse_args = derive_parse_args::derive_parse_args(&input);
-    let to_args = derive_to_args::derive_to_args(&input);
+    let to_args = derive_emit_args::derive_emit_args(&input);
 
     let struct_ident: &syn::Ident = &input.ident;
     let result = quote!{

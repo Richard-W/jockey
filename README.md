@@ -30,7 +30,7 @@ Define your arguments struct:
 ```rust
 #[derive(JockeyArguments)]
 struct MyArguments {
-	pub mandatory: String,
+	pub defaulted: String,
 	pub optional: Option<String>,
 	pub flag: bool,
 }
@@ -38,7 +38,7 @@ struct MyArguments {
 impl MyArguments {
 	fn new() -> Self {
 		MyArguments {
-			mandatory: "".into(),
+			defaulted: "default_value".into(),
 			optional: None,
 			flag: false,
 		}
@@ -57,7 +57,7 @@ fn main() {
 		Err(err) => panic!("Error parsing command line: {}", err),
 	};
 
-	println!("--mandatory \"{}\"", args.mandatory);
+	println!("--defaulted \"{}\"", args.defaulted);
 	match args.optional {
 		Some(x) => println!("--optional Some(\"{}\")", x),
 		_ => println!("--optional None"),

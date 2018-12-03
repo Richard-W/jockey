@@ -1,4 +1,4 @@
-use result;
+use result::Result;
 
 /// Represents a set of command line arguments that can be parsed or emitted
 ///
@@ -15,11 +15,11 @@ use result;
 pub trait Arguments : Sized {
 
     /// Emits a set of command line arguments.
-    fn to_args(&self) -> Vec<String>;
+    fn emit_args(&self) -> Vec<String>;
 
     /// Parses command line arguments.
     ///
     /// This function expects a vector as supplied by `env::args().collect()`. It
     /// ignores the first element which typically contains the path of the executable.
-    fn parse_args(args: Vec<String>) -> result::Result<Self>;
+    fn parse_args(args: Vec<String>) -> Result<Self>;
 }
