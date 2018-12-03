@@ -3,6 +3,7 @@ use std::fmt;
 
 use std::error::Error as StdError;
 
+/// Error type for this crate.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {
     UnknownOption(String),
@@ -34,4 +35,5 @@ impl fmt::Display for Error {
     }
 }
 
+/// Result type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
