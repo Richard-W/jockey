@@ -50,8 +50,6 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                     continue;
                 }
             }),
-
-            _ => panic!("Unsupported type for JockeyArguments derivation"),
         }
     }
 

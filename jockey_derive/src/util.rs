@@ -1,5 +1,4 @@
 pub enum Type {
-    Unsupported,
     MandatoryString,
     OptionalString,
     Flag,
@@ -17,19 +16,19 @@ impl From<syn::Type> for Type {
                             Some(ref arg) => match arg {
                                 syn::GenericArgument::Type(ref ty) => match ty.clone().into() {
                                     Type::MandatoryString => Type::OptionalString,
-                                    _ => Type::Unsupported,
+                                    _ => panic!("Unsupported type"),
                                 },
-                                _ => Type::Unsupported,
+                                _ => panic!("Unsupported type"),
                             },
-                            _ => Type::Unsupported,
+                            _ => panic!("Unsupported type"),
                         },
-                        _ => Type::Unsupported,
+                        _ => panic!("Unsupported type"),
                     }
-                    _ => Type::Unsupported,
+                    _ => panic!("Unsupported type"),
                 }
-                _ => Type::Unsupported,
+                _ => panic!("Unsupported type"),
             }
-            _ => Type::Unsupported,
+            _ => panic!("Unsupported type"),
         }
     }
 }
