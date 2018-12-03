@@ -1,37 +1,4 @@
-enum SupportedType {
-    Unsupported,
-    MandatoryString,
-    OptionalString,
-    Flag,
-}
-
-fn supported_type_to_string(ty: &syn::Type) -> SupportedType
-{
-    match ty {
-        syn::Type::Path(ref path) => match path.path.segments.iter().next() {
-            Some(first_seg) => match first_seg.ident.to_string().as_ref() {
-                "String" => SupportedType::MandatoryString,
-                "bool" => SupportedType::Flag,
-                "Option" => match first_seg.arguments {
-                    syn::PathArguments::AngleBracketed(ref ab) => match ab.args.iter().next() {
-                        Some(ref arg) => match arg {
-                            syn::GenericArgument::Type(ref ty) => match supported_type_to_string(ty) {
-                                SupportedType::MandatoryString => SupportedType::OptionalString,
-                                _ => SupportedType::Unsupported,
-                            },
-                            _ => SupportedType::Unsupported,
-                        },
-                        _ => SupportedType::Unsupported,
-                    },
-                    _ => SupportedType::Unsupported,
-                }
-                _ => SupportedType::Unsupported,
-            }
-            _ => SupportedType::Unsupported,
-        }
-        _ => SupportedType::Unsupported,
-    }
-}
+use util;
 
 pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     let struct_ident: &syn::Ident = &input.ident;
@@ -54,8 +21,8 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         let field_ident = field.ident.clone().unwrap();
         let argument_key = "--".to_string() + &field_ident.to_string();
 
-        match supported_type_to_string(&field.ty) {
-            SupportedType::MandatoryString => {
+        match util::supported_type_to_string(&field.ty) {
+            util::SupportedType::MandatoryString => {
                 let mandatory_ident = syn::Ident::new(&format!("got_{}", field_ident), proc_macro2::Span::call_site());
                 decl_mandatories.extend(quote! {
                     let mut #mandatory_ident: bool = false;
@@ -77,7 +44,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 });
             },
 
-            SupportedType::OptionalString => parser_components.extend(quote! {
+            util::SupportedType::OptionalString => parser_components.extend(quote! {
                 if key == #argument_key {
                     match iter.next() {
                         Some(val) => result.#field_ident = Some(val.clone()),
@@ -87,7 +54,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 }
             }),
 
-            SupportedType::Flag => parser_components.extend(quote! {
+            util::SupportedType::Flag => parser_components.extend(quote! {
                 if (key == #argument_key) {
                     result.#field_ident = true;
                     continue;

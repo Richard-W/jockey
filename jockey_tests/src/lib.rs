@@ -2,6 +2,8 @@ extern crate jockey;
 #[macro_use]
 extern crate jockey_derive;
 
+use jockey::Arguments;
+
 #[derive(JockeyArguments)]
 struct SimpleArguments {
     pub mandatory: String,
@@ -20,8 +22,6 @@ impl SimpleArguments {
         }
     }
 }
-
-use jockey::Arguments;
 
 #[test]
 pub fn parse_simple_arguments() {
