@@ -11,13 +11,13 @@ pub fn derive_to_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         pushes.extend(match field.ty {
             util::Type::MandatoryString => quote!{
                 result.push(#long_option.into());
-                result.push(self.#field_ident);
+                result.push(self.#field_ident.clone());
             },
             util::Type::OptionalString => quote! {
                 match self.#field_ident {
-                    Some(val) => {
+                    Some(ref val) => {
                         result.push(#long_option.into());
-                        result.push(val);
+                        result.push(val.clone());
                     },
                     None => {},
                 }
@@ -31,7 +31,7 @@ pub fn derive_to_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     }
 
     let result = quote! {
-        fn to_args(self) -> Vec<String> {
+        fn to_args(&self) -> Vec<String> {
             let mut result: Vec<String> = Vec::new();
 
             #pushes
