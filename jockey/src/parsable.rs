@@ -2,7 +2,10 @@ use result::{Result, Error};
 use std::iter::Peekable;
 use std::slice::Iter;
 
+/// Implemented by types parsable in Arguments::parse_args().
 pub trait Parsable : Sized {
+
+    /// Parse the next argument on the iterator if possible.
     fn parse_arg(iter: &mut Peekable<Iter<String>>, long_option: String) -> Option<Result<Self>>;
 }
 

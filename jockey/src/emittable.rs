@@ -1,4 +1,7 @@
+/// Implemented by types emittable in Arguments::emit_args().
 pub trait Emittable {
+
+    /// Return a vector containing the emitted arguments.
     fn emit_args(&self, long_option: String) -> Vec<String>;
 }
 
