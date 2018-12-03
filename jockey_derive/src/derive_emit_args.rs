@@ -1,5 +1,6 @@
 use util;
-pub fn derive_to_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
+
+pub fn derive_emit_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     let struct_def = util::derive_input_to_struct_def(input);
 
     let mut pushes = quote!{};
@@ -14,7 +15,7 @@ pub fn derive_to_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     }
 
     let result = quote! {
-        fn to_args(&self) -> Vec<String> {
+        fn emit_args(&self) -> Vec<String> {
             let mut result: Vec<String> = Vec::new();
             use jockey::Emittable;
 

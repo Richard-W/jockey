@@ -15,7 +15,7 @@ use result::Result;
 pub trait Arguments : Sized {
 
     /// Emits a set of command line arguments.
-    fn to_args(&self) -> Vec<String>;
+    fn emit_args(&self) -> Vec<String>;
 
     /// Parses command line arguments.
     ///

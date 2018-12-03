@@ -61,7 +61,7 @@ pub fn output_simple_arguments() {
     args1.flag = true;
 
     let expected1: Vec<String> = vec!["--defaulted".into(), "foo".into(), "--flag".into()];
-    assert_eq!(args1.to_args(), expected1);
+    assert_eq!(args1.emit_args(), expected1);
 
     let mut args2 = SimpleArguments::new();
     args2.defaulted = "foo".into();
@@ -69,5 +69,5 @@ pub fn output_simple_arguments() {
     args2.flag = true;
 
     let expected2: Vec<String> = vec!["--defaulted".into(), "foo".into(), "--optional".into(), "bar".into(), "--flag".into()];
-    assert_eq!(args2.to_args(), expected2);
+    assert_eq!(args2.emit_args(), expected2);
 }
