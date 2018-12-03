@@ -1,4 +1,7 @@
-# Jockey
+# Jockey [![Latest Version]][crates.io]
+
+[Latest Version]: https://img.shields.io/crates/v/jockey.svg
+[crates.io]: https://crates.io/crates/jockey
 
 **Jockey aims to provide an easy way to parse command line options in the Rust language.**
 
@@ -6,7 +9,7 @@
 
 ## Using jockey
 
-Add the necessary dependencies to your Cargo.toml (as soon as 0.1.0 is released - which is not the case yet):
+Add the necessary dependencies to your Cargo.toml:
 
 ```toml
 [dependencies]
