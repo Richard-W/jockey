@@ -7,6 +7,10 @@ publish = false
 [lib]
 doc = false
 
+[[bin]]
+name = "jockey_tests"
+path = "src/main.rs"
+
 [dependencies]
 jockey = { path = "../jockey" }
 jockey_derive = { path = "../jockey_derive" }
