@@ -18,6 +18,9 @@ struct TestArguments {
 
     #[jockey(short_option="t")]
     pub two_words: Option<String>,
+
+    #[jockey(long_option="re-named")]
+    pub renamed: Option<String>,
 }
 
 #[cfg(test)]
@@ -129,6 +132,14 @@ pub fn parse_invalid_options() {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnexpectedEnd),
     }
+}
+
+#[test]
+pub fn parse_renamed_long_option() {
+    let actual = parse(&vec!["dummy", "--re-named", "foo"]).unwrap();
+    let mut expected = TestArguments::default();
+    expected.renamed = Some("foo".into());
+    assert_eq!(actual, expected);
 }
 
 #[test]
