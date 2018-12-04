@@ -13,8 +13,8 @@ struct SimpleArguments {
     pub flag: bool,
 }
 
-impl SimpleArguments {
-    pub fn new() -> Self {
+impl Default for SimpleArguments {
+    fn default() -> Self {
         SimpleArguments {
             defaulted: "default_value".into(),
             optional: None,
@@ -56,14 +56,14 @@ pub fn parse_simple_arguments_errors() {
 
 #[test]
 pub fn output_simple_arguments() {
-    let mut args1 = SimpleArguments::new();
+    let mut args1 = SimpleArguments::default();
     args1.defaulted = "foo".into();
     args1.flag = true;
 
     let expected1: Vec<String> = vec!["--defaulted".into(), "foo".into(), "--flag".into()];
     assert_eq!(args1.emit_args(), expected1);
 
-    let mut args2 = SimpleArguments::new();
+    let mut args2 = SimpleArguments::default();
     args2.defaulted = "foo".into();
     args2.optional = Some("bar".into());
     args2.flag = true;

@@ -37,8 +37,8 @@ struct MyArguments {
 	pub flag: bool,
 }
 
-impl MyArguments {
-	fn new() -> Self {
+impl Default for MyArguments {
+	fn default() -> Self {
 		MyArguments {
 			defaulted: "default_value".into(),
 			optional: None,
@@ -51,10 +51,8 @@ impl MyArguments {
 And start using it:
 
 ```rust
-use jockey::Arguments;
-
 fn main() {
-	let args = match MyArguments::parse_args(std::env::args().collect()) {
+	let args = match <MyArguments as jockey::Arguments>::parse_args(std::env::args().collect()) {
 		Ok(args) => args,
 		Err(err) => panic!("Error parsing command line: {}", err),
 	};
@@ -67,3 +65,5 @@ fn main() {
 	println!("--flag {}", args.flag);
 }
 ```
+
+Instead of defining the implementation for `Default` yourself you can also use `#[derive(Default, JockeyArguments)]` and be done with it.

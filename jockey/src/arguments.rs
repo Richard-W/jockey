@@ -12,7 +12,7 @@ use result::Result;
 /// The derivation macro also requires a static `new()` function that requires
 /// no further arguments and initializes `Option<String>` fields to `None` and
 /// `bool` fields to `false`.
-pub trait Arguments : Sized {
+pub trait Arguments : Sized + Default {
 
     /// Emits a set of command line arguments.
     fn emit_args(&self) -> Vec<String>;
