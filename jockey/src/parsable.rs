@@ -6,11 +6,11 @@ use std::slice::Iter;
 pub trait Parsable : Sized {
 
     /// Parse the next argument on the iterator if possible.
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: String) -> Option<Result<Self>>;
+    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>>;
 }
 
 impl Parsable for String {
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: String) -> Option<Result<Self>> {
+    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>> {
         match iter.peek().cloned() {
             Some(val) => {
                 // Split arguments of the form "--foo=bar" to "--foo" and "bar"
@@ -42,24 +42,24 @@ impl Parsable for String {
 }
 
 impl Parsable for bool {
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: String) -> Option<Result<Self>> {
-        let result = match iter.peek() {
-            Some(x) => x.to_string() == option,
-            None => false,
-        };
-
-        if result {
-            iter.next();
-            Some(Ok(true))
-        }
-        else {
-            None
+    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>> {
+        match iter.peek().cloned() {
+            Some(key) => {
+                if key == option {
+                    iter.next();
+                    Some(Ok(true))
+                }
+                else {
+                    None
+                }
+            },
+            None => None,
         }
     }
 }
 
 impl<T : Parsable> Parsable for Option<T> {
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: String) -> Option<Result<Self>> {
+    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>> {
         match T::parse_arg(iter, option) {
             Some(Ok(val)) => Some(Ok(Some(val))),
             Some(Err(err)) => Some(Err(err)),

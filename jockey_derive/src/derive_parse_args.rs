@@ -12,7 +12,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         let span = field_ident.span();
 
         parser_components.extend(quote_spanned!{span=>
-            match <#field_type as jockey::Parsable>::parse_arg(&mut iter, #long_option.into()) {
+            match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#long_option.to_string()) {
                 Some(Ok(val)) => { result.#field_ident = val; continue; }
                 Some(Err(err)) => return Err(err),
                 None => {},
