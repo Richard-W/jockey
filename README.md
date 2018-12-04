@@ -15,8 +15,8 @@ Add the necessary dependencies to your Cargo.toml:
 
 ```toml
 [dependencies]
-jockey = "0.2.0"
-jockey_derive = "0.2.0"
+jockey = "<version>"
+jockey_derive = "<version>"
 ```
 
 Add the crate declarations to your code:
