@@ -30,21 +30,10 @@ extern crate jockey_derive;
 Define your arguments struct:
 
 ```rust
-#[derive(Arguments)]
+#[derive(Default, Arguments, Debug)]
 struct MyArguments {
-	pub defaulted: String,
-	pub optional: Option<String>,
+	pub string: Option<String>,
 	pub flag: bool,
-}
-
-impl Default for MyArguments {
-	fn default() -> Self {
-		MyArguments {
-			defaulted: "default_value".into(),
-			optional: None,
-			flag: false,
-		}
-	}
 }
 ```
 
@@ -52,18 +41,9 @@ And start using it:
 
 ```rust
 fn main() {
-	let args = match <MyArguments as jockey::Arguments>::parse_args(std::env::args().collect()) {
-		Ok(args) => args,
-		Err(err) => panic!("Error parsing command line: {}", err),
-	};
+	let args = <MyArguments as jockey::Arguments>::parse_args(std::env::args())
+            .expect("Error parsing command line");
 
-	println!("--defaulted \"{}\"", args.defaulted);
-	match args.optional {
-		Some(x) => println!("--optional Some(\"{}\")", x),
-		_ => println!("--optional None"),
-	};
-	println!("--flag {}", args.flag);
+        println!("{:#?}", args);
 }
 ```
-
-Instead of defining the implementation for `Default` yourself you can also use `#[derive(Default, Arguments)]` and be done with it.
