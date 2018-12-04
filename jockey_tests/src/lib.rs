@@ -25,15 +25,20 @@ impl Default for SimpleArguments {
 
 #[test]
 pub fn parse_simple_arguments() {
-    let args1 = SimpleArguments::parse_args(vec!["exec".into(), "--defaulted".into(), "foo".into(), "--flag".into()]).unwrap();
+    let args1 = <SimpleArguments as Arguments>::parse_args(vec!["exec".into(), "--defaulted".into(), "foo".into(), "--flag".into()]).unwrap();
     assert_eq!(args1.defaulted, "foo");
     assert_eq!(args1.optional, None);
     assert_eq!(args1.flag, true);
 
-    let args2 = SimpleArguments::parse_args(vec!["exec".into(), "--defaulted".into(), "foo".into(), "--flag".into(), "--optional".into(), "bar".into()]).unwrap();
+    let args2 = <SimpleArguments as Arguments>::parse_args(vec!["exec".into(), "--defaulted".into(), "foo".into(), "--flag".into(), "--optional".into(), "bar".into()]).unwrap();
     assert_eq!(args2.defaulted, "foo");
     assert_eq!(args2.optional, Some("bar".into()));
     assert_eq!(args2.flag, true);
+
+    let args3 = <SimpleArguments as Arguments>::parse_args(vec!["exec".into(), "--defaulted=foo".into(), "--flag".into(), "--optional=bar".into()]).unwrap();
+    assert_eq!(args3.defaulted, "foo");
+    assert_eq!(args3.optional, Some("bar".into()));
+    assert_eq!(args3.flag, true);
 }
 
 #[test]
