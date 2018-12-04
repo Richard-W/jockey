@@ -15,6 +15,9 @@ struct SimpleArguments {
 
     #[jockey(short_option="f")]
     pub flag: bool,
+
+    #[jockey(long_option="multiple-words")]
+    pub multiple_words: Option<String>,
 }
 
 impl Default for SimpleArguments {
@@ -23,6 +26,7 @@ impl Default for SimpleArguments {
             defaulted: "default_value".into(),
             optional: None,
             flag: false,
+            multiple_words: None,
         }
     }
 }
@@ -43,6 +47,12 @@ pub fn parse_simple_arguments() {
     assert_eq!(args3.defaulted, "foo");
     assert_eq!(args3.optional, Some("bar".into()));
     assert_eq!(args3.flag, true);
+
+    let args4 = <SimpleArguments as Arguments>::parse_args(vec!["exec".into(), "--defaulted=foo".into(), "--flag".into(), "--optional=bar".into(), "--multiple-words".into(), "baz".into()]).unwrap();
+    assert_eq!(args4.defaulted, "foo");
+    assert_eq!(args4.optional, Some("bar".into()));
+    assert_eq!(args4.flag, true);
+    assert_eq!(args4.multiple_words, Some("baz".into()));
 }
 
 #[test]

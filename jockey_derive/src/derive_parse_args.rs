@@ -8,8 +8,9 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     for ref field in struct_def.fields {
         let field_ident = &field.ident;
         let field_type = &field.ty;
-        let long_option = &field.long_option;
         let span = field_ident.span();
+
+        let long_option = String::from("--") + &field.long_option;
 
         parser_components.extend(quote_spanned!{span=>
             match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#long_option.to_string()) {
@@ -20,8 +21,8 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         });
 
         match &field.short_option {
-            Some(ref short_option_char) => {
-                let short_option = "-".to_string() + short_option_char;
+            Some(ref short_option) => {
+                let short_option = String::from("-") + short_option;
                 parser_components.extend(quote_spanned!{span=>
                     match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#short_option.to_string()) {
                         Some(Ok(val)) => { result.#field_ident = val; continue; }

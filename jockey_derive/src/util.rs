@@ -20,12 +20,12 @@ pub struct StructField {
 }
 
 impl StructField {
-    pub fn new(ident: syn::Ident, ty: syn::Type, long_option: String, short_option: Option<String>) -> Self {
+    pub fn new(ident: syn::Ident, ty: syn::Type) -> Self {
         StructField {
             ident: ident,
             ty: ty,
-            long_option: long_option,
-            short_option: short_option,
+            long_option: "".to_string(),
+            short_option: None,
         }
     }
 }
@@ -62,15 +62,14 @@ pub fn apply_field_attrs(target: &mut StructField, attr: &syn::Attribute) {
 
 pub fn handle_field_attr(target: &mut StructField, key: &str, value: String) {
     match key {
+        "long_option" => target.long_option = value,
         "short_option" => target.short_option = Some(value),
         _ => panic!("Unknown jockey attribute: {}", key),
     }
 }
 
 pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
-    let struct_ident: syn::Ident = input.ident.clone();
-
-    let syn_struct_fields = match input.data {
+    let syn_fields = match input.data {
         syn::Data::Struct(ref data) => match data.fields {
             syn::Fields::Named(ref fields) => &fields.named,
             _ => panic!("Can only derive JockeyArguments from struct with named fields"),
@@ -78,21 +77,21 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
         _ => panic!("Can only derive JockeyArguments from struct"),
     };
 
-    let mut struct_fields: Vec<StructField> = Vec::new();
-    for syn_struct_field in syn_struct_fields {
-        let ident = syn_struct_field.ident.clone().unwrap();
-        let ty = syn_struct_field.ty.clone();
-        let mut long_option = "--".to_string() + &ident.to_string();
-        let mut short_option = None;
+    let mut fields: Vec<StructField> = Vec::new();
+    for syn_field in syn_fields {
+        let mut field = StructField::new(syn_field.ident.clone().unwrap(), syn_field.ty.clone());
 
-        let mut struct_field = StructField::new(ident, ty, long_option, short_option);
-
-        for attr in syn_struct_field.attrs.clone() {
-            apply_field_attrs(&mut struct_field, &attr);
+        for attr in syn_field.attrs.clone() {
+            apply_field_attrs(&mut field, &attr);
         }
 
-        struct_fields.push(struct_field);
+        // If no long option was set add it
+        if field.long_option.len() == 0 {
+            field.long_option = field.ident.to_string();
+        }
+
+        fields.push(field);
     }
 
-    Struct::new(struct_ident, struct_fields)
+    Struct::new(input.ident.clone(), fields)
 }
