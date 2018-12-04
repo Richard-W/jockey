@@ -14,5 +14,5 @@ pub trait Arguments : Sized + Default {
     ///
     /// This function expects a vector as supplied by `env::args().collect()`. It
     /// ignores the first element which typically contains the path of the executable.
-    fn parse_args(args: Vec<String>) -> Result<Self>;
+    fn parse_args<I> (args: I) -> Result<Self> where I : Iterator<Item = String>;
 }

@@ -37,9 +37,9 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
     let struct_ident = &struct_def.ident;
     let result = quote!{
-        fn parse_args(args: Vec<String>) -> jockey::Result<#struct_ident> {
+        fn parse_args<I> (args: I) -> jockey::Result<#struct_ident> where I : Iterator<Item = String> {
             let mut result = <#struct_ident as Default>::default();
-            let mut iter = args.iter().peekable();
+            let mut iter = args.peekable();
 
             // Skip first argument which is the executable path.
             iter.next();

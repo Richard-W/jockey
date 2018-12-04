@@ -20,7 +20,7 @@ impl Default for MyArguments {
 }
 
 fn main() {
-	let args = match <MyArguments as jockey::Arguments>::parse_args(std::env::args().collect()) {
+	let args = match <MyArguments as jockey::Arguments>::parse_args(std::env::args()) {
 		Ok(args) => args,
 		Err(err) => panic!("Error parsing command line: {}", err),
 	};

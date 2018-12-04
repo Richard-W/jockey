@@ -1,16 +1,15 @@
 use result::{Result, Error};
 use std::iter::Peekable;
-use std::slice::Iter;
 
 /// Implemented by types parsable in Arguments::parse_args().
 pub trait Parsable : Sized {
 
     /// Parse the next argument on the iterator if possible.
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>>;
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> Option<Result<Self>> where I: Iterator<Item = String>;
 }
 
 impl Parsable for String {
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> Option<Result<Self>> where I: Iterator<Item = String> {
         match iter.peek().cloned() {
             Some(val) => {
                 // Split arguments of the form "--foo=bar" to "--foo" and "bar"
@@ -23,7 +22,7 @@ impl Parsable for String {
                         Some(split[1].to_string())
                     }
                     else {
-                        iter.next().cloned()
+                        iter.next()
                     };
 
                     match value {
@@ -42,10 +41,10 @@ impl Parsable for String {
 }
 
 impl Parsable for bool {
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> Option<Result<Self>> where I: Iterator<Item = String> {
         match iter.peek().cloned() {
             Some(key) => {
-                if key == option {
+                if key == option.as_ref() {
                     iter.next();
                     Some(Ok(true))
                 }
@@ -59,7 +58,7 @@ impl Parsable for bool {
 }
 
 impl<T : Parsable> Parsable for Option<T> {
-    fn parse_arg(iter: &mut Peekable<Iter<String>>, option: &String) -> Option<Result<Self>> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> Option<Result<Self>> where I: Iterator<Item = String> {
         match T::parse_arg(iter, option) {
             Some(Ok(val)) => Some(Ok(Some(val))),
             Some(Err(err)) => Some(Err(err)),
