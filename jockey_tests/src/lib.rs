@@ -16,7 +16,7 @@ struct SimpleArguments {
     #[jockey(short_option="f")]
     pub flag: bool,
 
-    #[jockey(long_option="multiple-words")]
+    #[jockey(long_option="multiple-words", short_option="m")]
     pub multiple_words: Option<String>,
 }
 
@@ -61,6 +61,12 @@ pub fn parse_short_options() {
     assert_eq!(args1.defaulted, "foo");
     assert_eq!(args1.optional, None);
     assert_eq!(args1.flag, true);
+
+    let args2 = <SimpleArguments as Arguments>::parse_args(vec!["exec".into(), "-d".into(), "foo".into(), "-f".into(), "-m".into(), "baz".into()]).unwrap();
+    assert_eq!(args2.defaulted, "foo");
+    assert_eq!(args2.optional, None);
+    assert_eq!(args2.flag, true);
+    assert_eq!(args2.multiple_words, Some("baz".into()));
 }
 
 #[test]
