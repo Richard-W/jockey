@@ -7,11 +7,12 @@ pub fn derive_emit_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
     for ref field in struct_def.fields {
         let field_ident = &field.ident;
+        let field_type = &field.ty;
         let long_option = &field.long_option;
         let span = field.ident.span();
 
         pushes.extend(quote_spanned!{span=>
-            result.extend(self.#field_ident.emit_args(#long_option.to_string()));
+            result.extend(<#field_type as jockey::Emittable>::emit_args(&self.#field_ident, #long_option.to_string()));
         });
     }
 
