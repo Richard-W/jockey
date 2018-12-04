@@ -30,6 +30,43 @@ impl StructField {
     }
 }
 
+
+pub fn apply_field_attrs(target: &mut StructField, attr: &syn::Attribute) {
+    match attr.parse_meta().unwrap() {
+        syn::Meta::Word(ident) => {
+            if ident == "jockey" {
+                panic!("Bad use of jockey attribute (expected List)");
+            }
+        },
+        syn::Meta::NameValue(name_value) => {
+            if name_value.ident == "jockey" {
+                panic!("Bad use of jockey attribute (expected List)");
+            }
+        },
+        syn::Meta::List(list) => if list.ident == "jockey" {
+            for nested in list.nested.iter() {
+                match nested {
+                    syn::NestedMeta::Meta(nested_meta) => match nested_meta {
+                        syn::Meta::NameValue(name_value) => match &name_value.lit {
+                            syn::Lit::Str(ref value) => handle_field_attr(target, &name_value.ident.to_string(), value.value()),
+                            _ => panic!("Bad use of jockey attribute (expected string literal"),
+                        },
+                        _ => panic!("Bad use of jockey attribute (expected NameValue)"),
+                    },
+                    _ => panic!("Bad use of jockey attribute (expected Meta)"),
+                }
+            }
+        },
+    }
+}
+
+pub fn handle_field_attr(target: &mut StructField, key: &str, value: String) {
+    match key {
+        "short_option" => target.short_option = Some(value),
+        _ => panic!("Unknown jockey attribute: {}", key),
+    }
+}
+
 pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
     let struct_ident: syn::Ident = input.ident.clone();
 
@@ -48,44 +85,13 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
         let mut long_option = "--".to_string() + &ident.to_string();
         let mut short_option = None;
 
+        let mut struct_field = StructField::new(ident, ty, long_option, short_option);
+
         for attr in syn_struct_field.attrs.clone() {
-            let meta = attr.parse_meta().unwrap();
-            match meta {
-                syn::Meta::List(list) => {
-                    if list.ident == "jockey" {
-                        for nested in list.nested.iter() {
-                            match nested {
-                                syn::NestedMeta::Meta(nested_meta) => match nested_meta {
-                                    syn::Meta::NameValue(name_value) => {
-                                        match name_value.ident.to_string().as_ref() {
-                                            "short_option" => match &name_value.lit {
-                                                syn::Lit::Str(ref lit_str) => short_option = Some(lit_str.value()),
-                                                _ => panic!("Bad use of jockey attribute"),
-                                            }
-                                            _ => panic!("Bad use of jockey attribute"),
-                                        }
-                                    },
-                                    _ => panic!("Bad use of jockey attribute"),
-                                },
-                                _ => panic!("Bad use of jockey attribute"),
-                            }
-                        }
-                    }
-                }
-                syn::Meta::Word(ident) => {
-                    if ident == "jockey" {
-                        panic!("Bad use of jockey attribute");
-                    }
-                }
-                syn::Meta::NameValue(name_value) => {
-                    if name_value.ident == "jockey" {
-                        panic!("Bad use of jockey attribute");
-                    }
-                }
-            }
+            apply_field_attrs(&mut struct_field, &attr);
         }
 
-        struct_fields.push(StructField::new(ident, ty, long_option, short_option));
+        struct_fields.push(struct_field);
     }
 
     Struct::new(struct_ident, struct_fields)
