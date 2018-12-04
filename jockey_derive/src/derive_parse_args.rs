@@ -18,6 +18,20 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 None => {},
             }
         });
+
+        match &field.short_option {
+            Some(ref short_option_char) => {
+                let short_option = "-".to_string() + short_option_char;
+                parser_components.extend(quote_spanned!{span=>
+                    match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#short_option.to_string()) {
+                        Some(Ok(val)) => { result.#field_ident = val; continue; }
+                        Some(Err(err)) => return Err(err),
+                        None => {},
+                    }
+                });
+            }
+            None => {},
+        }
     }
 
     let struct_ident = &struct_def.ident;

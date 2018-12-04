@@ -7,11 +7,13 @@ use jockey::Arguments;
 
 #[derive(JockeyArguments)]
 struct SimpleArguments {
-    #[jockey(short_option="-d")]
+    #[jockey(short_option="d")]
     pub defaulted: String,
 
+    #[jockey(short_option="o")]
     pub optional: Option<String>,
 
+    #[jockey(short_option="f")]
     pub flag: bool,
 }
 
@@ -41,6 +43,14 @@ pub fn parse_simple_arguments() {
     assert_eq!(args3.defaulted, "foo");
     assert_eq!(args3.optional, Some("bar".into()));
     assert_eq!(args3.flag, true);
+}
+
+#[test]
+pub fn parse_short_options() {
+    let args1 = <SimpleArguments as Arguments>::parse_args(vec!["exec".into(), "-d".into(), "foo".into(), "-f".into()]).unwrap();
+    assert_eq!(args1.defaulted, "foo");
+    assert_eq!(args1.optional, None);
+    assert_eq!(args1.flag, true);
 }
 
 #[test]
