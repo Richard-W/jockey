@@ -1,17 +1,10 @@
 use result::Result;
 
-/// Represents a set of command line arguments that can be parsed or emitted
+/// Represents a set of command line arguments that can be parsed or emitted.
 ///
-/// This trait is typically implemented by `#[derive(JockeyArguments)]`. The types
-/// currently supported in this derivation are
-///
-/// * String - Which is a mandatory option
-/// * Option<String> - Which is an optional option
-/// * bool - Which is a flag
-///
-/// The derivation macro also requires a static `new()` function that requires
-/// no further arguments and initializes `Option<String>` fields to `None` and
-/// `bool` fields to `false`.
+/// The easiest way to get this up and running is to add `#[derive(Default, JockeyArguments)]`
+/// to the struct containing your argument data. For the derivation to work the struct may only
+/// contain types that implement both the `Parsable` and `Emittable` traits.
 pub trait Arguments : Sized + Default {
 
     /// Emits a set of command line arguments.
