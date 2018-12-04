@@ -47,3 +47,5 @@ fn main() {
         println!("{:#?}", args);
 }
 ```
+
+Your application can now be called like `./dummy --string foo --flag` or `./dummy --string`. `_` characters in field names are automatically replaced by `-` characters so a field named `two_words` would yield a command line option named `--two-words`.
