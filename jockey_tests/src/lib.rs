@@ -141,21 +141,3 @@ pub fn parse_renamed_long_option() {
     expected.renamed = Some("foo".into());
     assert_eq!(actual, expected);
 }
-
-#[test]
-pub fn output_arguments() {
-    {
-        let mut args = TestArguments::default();
-        args.string = "foo".into();
-        args.flag = true;
-        let expected: Vec<String> = vec!["--string".into(), "foo".into(), "--flag".into()];
-        assert_eq!(args.emit_args(), expected);
-    }{
-        let mut args = TestArguments::default();
-        args.string = "foo".into();
-        args.option = Some("bar".into());
-        args.flag = true;
-        let expected: Vec<String> = vec!["--string".into(), "foo".into(), "--option".into(), "bar".into(), "--flag".into()];
-        assert_eq!(args.emit_args(), expected);
-    }
-}

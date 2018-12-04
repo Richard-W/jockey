@@ -7,6 +7,3 @@ pub use result::Result;
 
 mod parsable;
 pub use parsable::Parsable;
-
-mod emittable;
-pub use emittable::Emittable;

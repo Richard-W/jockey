@@ -7,9 +7,6 @@ use result::Result;
 /// contain types that implement both the `Parsable` and `Emittable` traits.
 pub trait Arguments : Sized + Default {
 
-    /// Emits a set of command line arguments.
-    fn emit_args(&self) -> Vec<String>;
-
     /// Parses command line arguments.
     ///
     /// This function expects a vector as supplied by `env::args().collect()`. It
