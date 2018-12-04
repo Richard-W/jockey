@@ -10,15 +10,19 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         let field_type = &field.ty;
         let span = field_ident.span();
 
-        let long_option = String::from("--") + &field.long_option;
-
-        parser_components.extend(quote_spanned!{span=>
-            match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#long_option.to_string()) {
-                Some(Ok(val)) => { result.#field_ident = val; continue; }
-                Some(Err(err)) => return Err(err),
-                None => {},
-            }
-        });
+        match &field.long_option {
+            Some(ref long_option) => {
+                let long_option = String::from("--") + long_option;
+                parser_components.extend(quote_spanned!{span=>
+                    match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#long_option.to_string()) {
+                        Some(Ok(val)) => { result.#field_ident = val; continue; }
+                        Some(Err(err)) => return Err(err),
+                        None => {},
+                    }
+                });
+            },
+            None => {},
+        }
 
         match &field.short_option {
             Some(ref short_option) => {

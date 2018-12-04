@@ -8,7 +8,7 @@ pub fn derive_emit_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     for ref field in struct_def.fields {
         let field_ident = &field.ident;
         let field_type = &field.ty;
-        let long_option = String::from("--") + &field.long_option;
+        let long_option = String::from("--") + &field.long_option.clone().unwrap();
         let span = field.ident.span();
 
         pushes.extend(quote_spanned!{span=>

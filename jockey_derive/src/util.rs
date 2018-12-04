@@ -15,7 +15,7 @@ impl Struct {
 pub struct StructField {
     pub ident: syn::Ident,
     pub ty: syn::Type,
-    pub long_option: String,
+    pub long_option: Option<String>,
     pub short_option: Option<String>,
 }
 
@@ -24,7 +24,7 @@ impl StructField {
         StructField {
             ident: ident,
             ty: ty,
-            long_option: "".to_string(),
+            long_option: None,
             short_option: None,
         }
     }
@@ -48,9 +48,18 @@ pub fn apply_field_attrs(target: &mut StructField, attr: &syn::Attribute) {
                 match nested {
                     syn::NestedMeta::Meta(nested_meta) => match nested_meta {
                         syn::Meta::NameValue(name_value) => match &name_value.lit {
-                            syn::Lit::Str(ref value) => handle_field_attr(target, &name_value.ident.to_string(), value.value()),
+                            syn::Lit::Str(ref value) => handle_field_attr(
+                                target,
+                                &name_value.ident.to_string(),
+                                Some(value.value())
+                            ),
                             _ => panic!("Bad use of jockey attribute (expected string literal"),
                         },
+                        syn::Meta::Word(ident) => handle_field_attr(
+                            target,
+                            &ident.to_string(),
+                            None
+                        ),
                         _ => panic!("Bad use of jockey attribute (expected NameValue)"),
                     },
                     _ => panic!("Bad use of jockey attribute (expected Meta)"),
@@ -60,10 +69,10 @@ pub fn apply_field_attrs(target: &mut StructField, attr: &syn::Attribute) {
     }
 }
 
-pub fn handle_field_attr(target: &mut StructField, key: &str, value: String) {
+pub fn handle_field_attr(target: &mut StructField, key: &str, value: Option<String>) {
     match key {
-        "long_option" => target.long_option = value,
-        "short_option" => target.short_option = Some(value),
+        "long_option" => target.long_option = Some(value.expect("jockey long_option attr needs a value")),
+        "short_option" => target.short_option = Some(value.expect("jockey short_option attr needs a value")),
         _ => panic!("Unknown jockey attribute: {}", key),
     }
 }
@@ -86,8 +95,8 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
         }
 
         // If no long option was set add it
-        if field.long_option.len() == 0 {
-            field.long_option = field.ident.to_string().replace("_", "-");
+        if field.long_option.is_none() {
+            field.long_option = Some(field.ident.to_string().replace("_", "-"));
         }
 
         fields.push(field);
