@@ -72,9 +72,9 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
     let syn_fields = match input.data {
         syn::Data::Struct(ref data) => match data.fields {
             syn::Fields::Named(ref fields) => &fields.named,
-            _ => panic!("Can only derive JockeyArguments from struct with named fields"),
+            _ => panic!("Can only derive Arguments from struct with named fields"),
         }
-        _ => panic!("Can only derive JockeyArguments from struct"),
+        _ => panic!("Can only derive Arguments from struct"),
     };
 
     let mut fields: Vec<StructField> = Vec::new();

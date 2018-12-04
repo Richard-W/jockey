@@ -1,6 +1,6 @@
 [package]
 name = "jockey_derive"
-description = "Implementation of #[derive(JockeyArguments)] for the jockey crate"
+description = "Implementation of #[derive(Arguments)] for the jockey crate"
 version = "0.3.0"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
 license = "MIT"

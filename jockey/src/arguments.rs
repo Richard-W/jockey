@@ -2,7 +2,7 @@ use result::Result;
 
 /// Represents a set of command line arguments that can be parsed or emitted.
 ///
-/// The easiest way to get this up and running is to add `#[derive(Default, JockeyArguments)]`
+/// The easiest way to get this up and running is to add `#[derive(Default, Arguments)]`
 /// to the struct containing your argument data. For the derivation to work the struct may only
 /// contain types that implement both the `Parsable` and `Emittable` traits.
 pub trait Arguments : Sized + Default {

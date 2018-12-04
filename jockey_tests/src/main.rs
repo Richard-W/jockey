@@ -2,7 +2,7 @@ extern crate jockey;
 #[macro_use]
 extern crate jockey_derive;
 
-#[derive(JockeyArguments)]
+#[derive(Arguments)]
 struct MyArguments {
 	pub defaulted: String,
 	pub optional: Option<String>,

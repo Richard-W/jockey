@@ -5,7 +5,7 @@ extern crate jockey_derive;
 #[cfg(test)]
 use jockey::Arguments;
 
-#[derive(JockeyArguments)]
+#[derive(Arguments)]
 struct SimpleArguments {
     #[jockey(short_option="d")]
     pub defaulted: String,

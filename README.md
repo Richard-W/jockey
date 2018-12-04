@@ -30,7 +30,7 @@ extern crate jockey_derive;
 Define your arguments struct:
 
 ```rust
-#[derive(JockeyArguments)]
+#[derive(Arguments)]
 struct MyArguments {
 	pub defaulted: String,
 	pub optional: Option<String>,
@@ -66,4 +66,4 @@ fn main() {
 }
 ```
 
-Instead of defining the implementation for `Default` yourself you can also use `#[derive(Default, JockeyArguments)]` and be done with it.
+Instead of defining the implementation for `Default` yourself you can also use `#[derive(Default, Arguments)]` and be done with it.
