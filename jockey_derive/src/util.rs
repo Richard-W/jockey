@@ -12,11 +12,13 @@ impl Struct {
     }
 }
 
+#[derive(Clone)]
 pub struct StructField {
     pub ident: syn::Ident,
     pub ty: syn::Type,
     pub long_option: Option<String>,
     pub short_option: Option<String>,
+    pub unknown_args: bool,
 }
 
 impl StructField {
@@ -26,10 +28,10 @@ impl StructField {
             ty: ty,
             long_option: None,
             short_option: None,
+            unknown_args: false,
         }
     }
 }
-
 
 pub fn apply_field_attrs(target: &mut StructField, attr: &syn::Attribute) {
     match attr.parse_meta().unwrap() {
@@ -70,10 +72,16 @@ pub fn apply_field_attrs(target: &mut StructField, attr: &syn::Attribute) {
 }
 
 pub fn handle_field_attr(target: &mut StructField, key: &str, value: Option<String>) {
-    match key {
-        "long_option" => target.long_option = Some(value.expect("jockey long_option attr needs a value")),
-        "short_option" => target.short_option = Some(value.expect("jockey short_option attr needs a value")),
-        _ => panic!("Unknown jockey attribute: {}", key),
+    match value {
+        Some(value) => match key {
+            "long_option" => target.long_option = Some(value),
+            "short_option" => target.short_option = Some(value),
+            _ => panic!("Unknown attribute key: {}", key),
+        },
+        None => match key {
+            "unknown_args" => target.unknown_args = true,
+            _ => panic!("Unknown jockey attribute: {}", key),
+        }
     }
 }
 
@@ -94,9 +102,16 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
             apply_field_attrs(&mut field, &attr);
         }
 
-        // If no long option was set add it
-        if field.long_option.is_none() {
-            field.long_option = Some(field.ident.to_string().replace("_", "-"));
+        if field.unknown_args {
+            if field.long_option.is_some() || field.short_option.is_some() {
+                panic!("unknown_args field cannot have option string assigned");
+            }
+        }
+        else {
+            if field.long_option.is_none() {
+                // Long option name is not set. Make up one based on the field name.
+                field.long_option = Some(field.ident.to_string().replace("_", "-"));
+            }
         }
 
         fields.push(field);

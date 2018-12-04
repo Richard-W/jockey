@@ -5,7 +5,16 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
     let mut parser_components = quote! {};
 
+    let mut unknown_args_field: Option<util::StructField> = None;
+
     for ref field in struct_def.fields {
+        if field.unknown_args {
+            if unknown_args_field.is_some() {
+                panic!("Only one unknown_args field may be defined");
+            }
+            unknown_args_field = Some(field.clone());
+        }
+
         let field_ident = &field.ident;
         let field_type = &field.ty;
         let span = field_ident.span();
@@ -39,6 +48,24 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         }
     }
 
+    let unknown_args_component = match unknown_args_field {
+        Some(field) => {
+            let field_ident = &field.ident;
+            let field_type = &field.ty;
+            let span = field_ident.span();
+
+            quote_spanned!{span=>
+                match iter.next() {
+                    Some(value) => <#field_type as std::iter::Extend<String>>::extend(&mut result.#field_ident, std::iter::once(value)),
+                    None => {},
+                }
+            }
+        }
+        None => quote! {
+            return Err(jockey::Error::UnknownOption(iter.peek().unwrap().to_string()));
+        },
+    };
+
     let struct_ident = &struct_def.ident;
     let result = quote!{
         fn parse_args<I> (args: I) -> jockey::Result<#struct_ident> where I : Iterator<Item = String> {
@@ -53,7 +80,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
                 #parser_components
 
-                return Err(jockey::Error::UnknownOption(iter.peek().unwrap().to_string()));
+                #unknown_args_component
             }
 
             Ok(result)

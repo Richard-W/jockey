@@ -141,3 +141,28 @@ pub fn parse_renamed_long_option() {
     expected.renamed = Some("foo".into());
     assert_eq!(actual, expected);
 }
+
+#[derive(Arguments, Default, Debug, PartialEq)]
+struct TestArguments2 {
+    pub string: String,
+
+    #[jockey(unknown_args)]
+    pub argn: Vec<String>,
+}
+
+#[cfg(test)]
+fn parse2(args: &Vec<&str>) -> Result<TestArguments2> {
+    let iter = args.into_iter().map(|x| x.to_string());
+    <TestArguments2 as Arguments>::parse_args(iter)
+}
+
+#[test]
+pub fn parse_unknown_args() {
+    {
+        let actual = parse2(&vec!["dummy", "a1", "--string", "foo", "a2"]).unwrap();
+        let mut expected = TestArguments2::default();
+        expected.string = "foo".into();
+        expected.argn = vec!["a1".into(), "a2".into()];
+        assert_eq!(actual, expected);
+    }
+}
