@@ -87,7 +87,7 @@ pub fn derive_input_to_struct_def(input: &syn::DeriveInput) -> Struct {
 
         // If no long option was set add it
         if field.long_option.len() == 0 {
-            field.long_option = field.ident.to_string();
+            field.long_option = field.ident.to_string().replace("_", "-");
         }
 
         fields.push(field);

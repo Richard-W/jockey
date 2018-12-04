@@ -16,7 +16,7 @@ struct TestArguments {
     #[jockey(short_option="f")]
     pub flag: bool,
 
-    #[jockey(long_option="two-words", short_option="t")]
+    #[jockey(short_option="t")]
     pub two_words: Option<String>,
 }
 
