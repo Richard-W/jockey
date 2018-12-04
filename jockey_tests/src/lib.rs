@@ -5,19 +5,19 @@ extern crate jockey_derive;
 #[cfg(test)]
 use jockey::{Arguments, Result};
 
-#[derive(Default, Arguments)]
+#[derive(Arguments, Default, Debug, PartialEq)]
 struct TestArguments {
-    #[jockey(short_option="d")]
-    pub defaulted: String,
+    #[jockey(short_option="s")]
+    pub string: String,
 
     #[jockey(short_option="o")]
-    pub optional: Option<String>,
+    pub option: Option<String>,
 
     #[jockey(short_option="f")]
     pub flag: bool,
 
-    #[jockey(long_option="multiple-words", short_option="m")]
-    pub multiple_words: Option<String>,
+    #[jockey(long_option="two-words", short_option="t")]
+    pub two_words: Option<String>,
 }
 
 #[cfg(test)]
@@ -27,75 +27,124 @@ fn parse(args: &Vec<&str>) -> Result<TestArguments> {
 }
 
 #[test]
-pub fn parse_simple_arguments() {
-    let args1 = parse(&vec!["exec", "--defaulted", "foo", "--flag"]).unwrap();
-    assert_eq!(args1.defaulted, "foo");
-    assert_eq!(args1.optional, None);
-    assert_eq!(args1.flag, true);
-
-    let args2 = parse(&vec!["exec", "--defaulted", "foo", "--flag", "--optional", "bar"]).unwrap();
-    assert_eq!(args2.defaulted, "foo");
-    assert_eq!(args2.optional, Some("bar".into()));
-    assert_eq!(args2.flag, true);
-
-    let args3 = parse(&vec!["exec", "--defaulted=foo", "--flag", "--optional=bar"]).unwrap();
-    assert_eq!(args3.defaulted, "foo");
-    assert_eq!(args3.optional, Some("bar".into()));
-    assert_eq!(args3.flag, true);
-
-    let args4 = parse(&vec!["exec", "--defaulted=foo", "--flag", "--optional=bar", "--multiple-words", "baz"]).unwrap();
-    assert_eq!(args4.defaulted, "foo");
-    assert_eq!(args4.optional, Some("bar".into()));
-    assert_eq!(args4.flag, true);
-    assert_eq!(args4.multiple_words, Some("baz".into()));
+pub fn parse_single_long_option() {
+    {
+        let actual = parse(&vec!["dummy", "--string", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.string = "foo".into();
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "--option", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.option = Some("foo".into());
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "--flag"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.flag = true;
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "--two-words", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.two_words = Some("foo".into());
+        assert_eq!(actual, expected);
+    }
 }
 
 #[test]
-pub fn parse_short_options() {
-    let args1 = parse(&vec!["exec", "-d", "foo", "-f"]).unwrap();
-    assert_eq!(args1.defaulted, "foo");
-    assert_eq!(args1.optional, None);
-    assert_eq!(args1.flag, true);
-
-    let args2 = parse(&vec!["exec", "-d", "foo", "-f", "-m", "baz"]).unwrap();
-    assert_eq!(args2.defaulted, "foo");
-    assert_eq!(args2.optional, None);
-    assert_eq!(args2.flag, true);
-    assert_eq!(args2.multiple_words, Some("baz".into()));
+pub fn parse_multiple_long_options() {
+    {
+        let actual = parse(&vec!["dummy", "--option", "bar", "--string", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.string = "foo".into();
+        expected.option = Some("bar".into());
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "--option", "bar", "--flag", "--string", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.string = "foo".into();
+        expected.option = Some("bar".into());
+        expected.flag = true;
+        assert_eq!(actual, expected);
+    }
 }
 
 #[test]
-pub fn parse_simple_arguments_errors() {
-    match parse(&vec!["exec", "--foo", "--defaulted", "foo"]) {
+pub fn parse_single_short_option() {
+    {
+        let actual = parse(&vec!["dummy", "-s", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.string = "foo".into();
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "-o", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.option = Some("foo".into());
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "-f"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.flag = true;
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "-t", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.two_words = Some("foo".into());
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+pub fn parse_multiple_short_options() {
+    {
+        let actual = parse(&vec!["dummy", "-o", "bar", "-s", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.string = "foo".into();
+        expected.option = Some("bar".into());
+        assert_eq!(actual, expected);
+    }{
+        let actual = parse(&vec!["dummy", "-o", "bar", "-f", "-s", "foo"]).unwrap();
+        let mut expected = TestArguments::default();
+        expected.string = "foo".into();
+        expected.option = Some("bar".into());
+        expected.flag = true;
+        assert_eq!(actual, expected);
+    }
+}
+
+
+#[test]
+pub fn parse_invalid_options() {
+    match parse(&vec!["exec", "--foo", "--string", "foo"]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnknownOption("--foo".into())),
     }
 
-    match parse(&vec!["exec", "--defaulted"]) {
+    match parse(&vec!["exec", "--string"]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnexpectedEnd),
     }
 
-    match parse(&vec!["exec", "--defaulted", "foo", "--optional"]) {
+    match parse(&vec!["exec", "--string", "foo", "--option"]) {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnexpectedEnd),
     }
 }
 
 #[test]
-pub fn output_simple_arguments() {
-    let mut args1 = TestArguments::default();
-    args1.defaulted = "foo".into();
-    args1.flag = true;
-
-    let expected1: Vec<String> = vec!["--defaulted".into(), "foo".into(), "--flag".into()];
-    assert_eq!(args1.emit_args(), expected1);
-
-    let mut args2 = TestArguments::default();
-    args2.defaulted = "foo".into();
-    args2.optional = Some("bar".into());
-    args2.flag = true;
-
-    let expected2: Vec<String> = vec!["--defaulted".into(), "foo".into(), "--optional".into(), "bar".into(), "--flag".into()];
-    assert_eq!(args2.emit_args(), expected2);
+pub fn output_arguments() {
+    {
+        let mut args = TestArguments::default();
+        args.string = "foo".into();
+        args.flag = true;
+        let expected: Vec<String> = vec!["--string".into(), "foo".into(), "--flag".into()];
+        assert_eq!(args.emit_args(), expected);
+    }{
+        let mut args = TestArguments::default();
+        args.string = "foo".into();
+        args.option = Some("bar".into());
+        args.flag = true;
+        let expected: Vec<String> = vec!["--string".into(), "foo".into(), "--option".into(), "bar".into(), "--flag".into()];
+        assert_eq!(args.emit_args(), expected);
+    }
 }
