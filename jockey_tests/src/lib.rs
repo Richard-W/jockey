@@ -7,6 +7,7 @@ use jockey::Arguments;
 
 #[derive(JockeyArguments)]
 struct SimpleArguments {
+    #[jockey(short_option="-d")]
     pub defaulted: String,
 
     pub optional: Option<String>,

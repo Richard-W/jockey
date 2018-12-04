@@ -12,7 +12,7 @@ mod derive_emit_args;
 mod util;
 
 /// Implementation of `#[derive(JockeyArguments)]` (don't use this directly).
-#[proc_macro_derive(JockeyArguments)]
+#[proc_macro_derive(JockeyArguments, attributes(jockey))]
 pub fn derive_arguments(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(tokens as syn::DeriveInput);
 
