@@ -2,6 +2,7 @@ extern crate jockey;
 #[macro_use]
 extern crate jockey_derive;
 
+#[cfg(test)]
 use jockey::Arguments;
 
 #[derive(JockeyArguments)]
