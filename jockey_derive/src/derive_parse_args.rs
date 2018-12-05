@@ -15,7 +15,10 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
                 None => {}
             }
             match parse_result.parsed {
-                Some(Ok(val)) => { result.#ident = val; continue; }
+                Some(Ok(val)) => {
+                    result.#ident = <#ty as jockey::Parsable>::assign(result.#ident, val);
+                    continue;
+                },
                 Some(Err(err)) => return Err(err),
                 None => {},
             }

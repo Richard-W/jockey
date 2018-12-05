@@ -42,6 +42,14 @@ pub trait Parsable : Sized {
 
     /// Parse the next argument on the iterator if possible.
     fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String>;
+
+    /// Assigns the right hand side to the left hand side and returns the result.
+    ///
+    /// This needs to be overriden for types with multiplicity (see implementation of Parsable for
+    /// Vec<String>). For types without multiplicity the default implementation will do just fine.
+    fn assign(_lhs: Self, rhs: Self) -> Self {
+        return rhs;
+    }
 }
 
 impl Parsable for String {
@@ -104,4 +112,18 @@ impl<T : Parsable> Parsable for Option<T> {
     }
 }
 
+impl Parsable for Vec<String> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String> {
+        let result = String::parse_arg(iter, option);
+        match result.parsed {
+            Some(Ok(val)) => ParseResult::success(vec![val], None),
+            Some(Err(err)) => ParseResult::err(err),
+            None => ParseResult::none(),
+        }
+    }
 
+    fn assign(mut lhs: Self, mut rhs: Self) -> Self {
+        lhs.append(&mut rhs);
+        return lhs;
+    }
+}

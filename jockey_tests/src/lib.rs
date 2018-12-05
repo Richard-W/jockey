@@ -151,6 +151,8 @@ pub fn parse_renamed_long_option() {
 struct TestArguments2 {
     pub string: String,
 
+    pub multi: Vec<String>,
+
     #[jockey(unknown_args)]
     pub argn: Vec<String>,
 }
@@ -170,4 +172,12 @@ pub fn parse_unknown_args() {
         expected.argn = vec!["a1".into(), "a2".into()];
         assert_eq!(actual, expected);
     }
+}
+
+#[test]
+pub fn parse_multi_args() {
+        let actual = parse2(&vec!["dummy", "--multi", "a1", "--multi", "a2"]).unwrap();
+        let mut expected = TestArguments2::default();
+        expected.multi = vec!["a1".into(), "a2".into()];
+        assert_eq!(actual, expected);
 }
