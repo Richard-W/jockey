@@ -25,26 +25,32 @@ use result::Result;
 ///     // A flag which is set to true if "--flag" (without a value) is given.
 ///     pub flag: bool,
 ///
+///     // Argument where the long option name is customized.
+///     #[jockey(long_option="other-name")]
+///     pub renamed: Option<String>,
+///
 ///     // A catch-all where all otherwise unrecognized command line options will be stored.
 ///     #[jockey(unknown_args)]
 ///     pub argn: Vec<String>,
 /// };
 ///
-/// // Emulate the behaviour of env::args().
 /// let args_vec = vec!["/path/to/my/executable",
 ///     "--my-string", "value1",
 ///     "-s", "value2",
 ///     "--flag",
+///     "--other-name", "value3",
 ///     "./file1", "./file2"];
 /// let args_iter = args_vec.iter().map(|x| x.to_string());
 ///
 /// use jockey::Arguments;
 ///
+/// // Parse the arguments. A real application would use env::args() instead of args_iter.
 /// let args = MyArguments::parse_args(args_iter).unwrap();
 ///
 /// assert_eq!(args.my_string, Some("value1".into()));
 /// assert_eq!(args.with_short_opt, Some("value2".into()));
 /// assert_eq!(args.flag, true);
+/// assert_eq!(args.renamed, Some("value3".into()));
 /// assert_eq!(args.argn, vec!["./file1".to_string(), "./file2".to_string()]);
 /// # }
 /// ```
