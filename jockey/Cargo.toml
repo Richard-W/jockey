@@ -8,4 +8,4 @@ repository = "https://github.com/richard-w/jockey"
 publish = false
 
 [dev-dependencies]
-jockey_derive = { path = "../jockey_derive" }
+jockey_derive = { version="^0", path = "../jockey_derive" }
