@@ -5,7 +5,6 @@ version = "0.3.0"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
 license = "MIT"
 repository = "https://github.com/richard-w/jockey"
-publish = false
 
 [dev-dependencies]
 jockey_derive = { version="^0", path = "../jockey_derive" }
