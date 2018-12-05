@@ -112,9 +112,9 @@ impl<T : Parsable> Parsable for Option<T> {
     }
 }
 
-impl Parsable for Vec<String> {
+impl<T : Parsable> Parsable for Vec<T> {
     fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String> {
-        let result = String::parse_arg(iter, option);
+        let result = T::parse_arg(iter, option);
         match result.parsed {
             Some(Ok(val)) => ParseResult::success(vec![val], None),
             Some(Err(err)) => ParseResult::err(err),
