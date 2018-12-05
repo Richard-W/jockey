@@ -1,6 +1,6 @@
 use result::Result;
 
-/// Represents a set of command line arguments that can be parsed.
+/// Represents a set of command-line arguments that can be parsed.
 ///
 /// The easiest way to get this up and running is to add `#[derive(Default, Arguments)]`
 /// to the struct containing your argument data. For the derivation to work the struct may only
@@ -29,7 +29,7 @@ use result::Result;
 ///     #[jockey(long_option="other-name")]
 ///     pub renamed: Option<String>,
 ///
-///     // A catch-all where all otherwise unrecognized command line options will be stored.
+///     // A catch-all where all otherwise unrecognized command-line options will be stored.
 ///     #[jockey(unknown_args)]
 ///     pub argn: Vec<String>,
 /// };
@@ -56,7 +56,7 @@ use result::Result;
 /// ```
 pub trait Arguments : Sized + Default {
 
-    /// Parses command line arguments.
+    /// Parses command-line arguments.
     ///
     /// This function expects an iterator as supplied by `env::args()`. The first element which
     /// typically contains the path of the executable is ignored.

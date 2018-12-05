@@ -1,6 +1,6 @@
 [package]
 name = "jockey"
-description = "Easy command line parsing for Rust"
+description = "Custom command-line parsers that practically write themselves"
 version = "0.3.0"
 authors = ["Richard Wiedenhöft <richard@wiedenhoeft.xyz>"]
 license = "MIT"

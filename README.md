@@ -5,7 +5,7 @@
 [Latest Version]: https://img.shields.io/crates/v/jockey.svg
 [crates.io]: https://crates.io/crates/jockey
 
-**Jockey aims to provide an easy way to parse command line options in the Rust language.**
+**Custom command-line parsers that practically write themselves.**
 
 ---
 
@@ -42,10 +42,10 @@ And start using it:
 ```rust
 fn main() {
 	let args = <MyArguments as jockey::Arguments>::parse_args(std::env::args())
-            .expect("Error parsing command line");
+            .expect("Error parsing command-line");
 
         println!("{:#?}", args);
 }
 ```
 
-Your application can now be called like `./dummy --string foo --flag` or `./dummy --string`. `_` characters in field names are automatically replaced by `-` characters so a field named `two_words` would yield a command line option named `--two-words`.
+Your application can now be called like `./dummy --string foo --flag` or `./dummy --string`. `_` characters in field names are automatically replaced by `-` characters so a field named `two_words` would yield a command-line option named `--two-words`.

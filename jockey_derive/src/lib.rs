@@ -1,3 +1,17 @@
+//! This crate provides jockey's derive macro.
+//!
+//! ```rust
+//! # extern crate jockey;
+//! # #[macro_use] extern crate jockey_derive;
+//! # fn main() {
+//! #[derive(Arguments)]
+//! # #[derive(Default)]
+//! # struct Struct {
+//! #   pub field: String,
+//! # }
+//! # }
+//! ```
+
 #![recursion_limit="128"] 
 
 extern crate proc_macro;

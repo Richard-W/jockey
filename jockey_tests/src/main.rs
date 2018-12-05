@@ -10,7 +10,7 @@ struct MyArguments {
 
 fn main() {
 	let args = <MyArguments as jockey::Arguments>::parse_args(std::env::args())
-            .expect("Error parsing command line");
+            .expect("Error parsing command-line");
 
         println!("{:#?}", args);
 }
