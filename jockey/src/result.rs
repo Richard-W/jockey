@@ -8,6 +8,7 @@ use std::error::Error as StdError;
 pub enum Error {
     UnknownOption(String),
     UnexpectedEnd,
+    DuplicateOption(String),
 }
 
 impl error::Error for Error {
@@ -15,6 +16,7 @@ impl error::Error for Error {
         match self {
             Error::UnknownOption(_) => "Unknown option",
             Error::UnexpectedEnd => "Unexpected end of arguments vector",
+            Error::DuplicateOption(_) => "Duplicate option encountered",
         }
     }
     
@@ -27,6 +29,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Error::UnknownOption(which) => write!(f, "{}: {}", self.description(), which),
+            Error::DuplicateOption(which) => write!(f, "{}: {}", self.description(), which),
             _ => write!(f, "{}", self.description()),
         }
     }

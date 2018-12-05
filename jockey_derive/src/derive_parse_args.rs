@@ -1,5 +1,28 @@
 use util;
 
+use proc_macro2::{TokenStream};
+use syn::{Ident, Type};
+
+fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStream {
+    let span = ident.span();
+    quote_spanned!{span=>
+        {
+            let parse_result = <#ty as jockey::Parsable>::parse_arg(&mut iter, &#option.to_string());
+            match parse_result.blacklist {
+                Some(val) => {
+                    blacklist.insert(val.to_string());
+                },
+                None => {}
+            }
+            match parse_result.parsed {
+                Some(Ok(val)) => { result.#ident = val; continue; }
+                Some(Err(err)) => return Err(err),
+                None => {},
+            }
+        }
+    }
+}
+
 pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     let struct_def = util::derive_input_to_struct_def(input);
 
@@ -15,20 +38,10 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
             unknown_args_field = Some(field.clone());
         }
 
-        let field_ident = &field.ident;
-        let field_type = &field.ty;
-        let span = field_ident.span();
-
         match &field.long_option {
             Some(ref long_option) => {
                 let long_option = String::from("--") + long_option;
-                parser_components.extend(quote_spanned!{span=>
-                    match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#long_option.to_string()) {
-                        Some(Ok(val)) => { result.#field_ident = val; continue; }
-                        Some(Err(err)) => return Err(err),
-                        None => {},
-                    }
-                });
+                parser_components.extend(get_parser_component(&field.ident, &field.ty, &long_option));
             },
             None => {},
         }
@@ -36,13 +49,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
         match &field.short_option {
             Some(ref short_option) => {
                 let short_option = String::from("-") + short_option;
-                parser_components.extend(quote_spanned!{span=>
-                    match <#field_type as jockey::Parsable>::parse_arg(&mut iter, &#short_option.to_string()) {
-                        Some(Ok(val)) => { result.#field_ident = val; continue; }
-                        Some(Err(err)) => return Err(err),
-                        None => {},
-                    }
-                });
+                parser_components.extend(get_parser_component(&field.ident, &field.ty, &short_option));
             }
             None => {},
         }
@@ -70,12 +77,24 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     let result = quote!{
         fn parse_args<I> (args: I) -> jockey::Result<#struct_ident> where I : Iterator<Item = String> {
             let mut result = <#struct_ident as Default>::default();
+            let mut blacklist: std::collections::HashSet<String> = std::collections::HashSet::new();
+
             let mut iter = args.peekable();
 
             // Skip first argument which is the executable path.
             iter.next();
 
             loop {
+                match iter.peek() {
+                    Some(arg) => {
+                        if blacklist.contains(arg) {
+                            return Err(jockey::Error::DuplicateOption(arg.to_string()));
+                        }
+                    },
+                    None => {
+                        break;
+                    },
+                }
                 if iter.peek().is_none() { break; }
 
                 #parser_components

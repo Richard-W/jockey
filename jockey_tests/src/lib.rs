@@ -132,6 +132,11 @@ pub fn parse_invalid_options() {
         Ok(_) => panic!(),
         Err(error) => assert_eq!(error, jockey::Error::UnexpectedEnd),
     }
+
+    match parse(&vec!["exec", "--string", "foo", "--string", "bar"]) {
+        Ok(_) => panic!(),
+        Err(error) => assert_eq!(error, jockey::Error::DuplicateOption("--string".into())),
+    }
 }
 
 #[test]
