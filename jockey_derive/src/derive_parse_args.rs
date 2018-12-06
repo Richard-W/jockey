@@ -66,13 +66,13 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
 
             quote_spanned!{span=>
                 match iter.next() {
-                    Some(value) => <#field_type as std::iter::Extend<String>>::extend(&mut result.#field_ident, std::iter::once(value)),
+                    Some((_, value)) => <#field_type as std::iter::Extend<String>>::extend(&mut result.#field_ident, std::iter::once(value)),
                     None => {},
                 }
             }
         }
         None => quote! {
-            return Err(jockey::Error::UnknownOption(iter.peek().unwrap().to_string()));
+            return Err(jockey::Error::UnknownOption(iter.peek().unwrap().1.to_string()));
         },
     };
 
@@ -82,14 +82,14 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
             let mut result = <#struct_ident as Default>::default();
             let mut blacklist: std::collections::HashSet<String> = std::collections::HashSet::new();
 
-            let mut iter = args.peekable();
+            let mut iter = args.enumerate().peekable();
 
             // Skip first argument which is the executable path.
             iter.next();
 
             loop {
                 match iter.peek() {
-                    Some(arg) => {
+                    Some((_, arg)) => {
                         if blacklist.contains(arg) {
                             return Err(jockey::Error::DuplicateOption(arg.to_string()));
                         }

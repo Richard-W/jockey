@@ -41,7 +41,7 @@ impl<T> ParseResult<T> {
 pub trait Parsable : Sized {
 
     /// Parse the next argument on the iterator if possible.
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String>;
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)>;
 
     /// Assigns the right hand side to the left hand side and returns the result.
     ///
@@ -53,9 +53,9 @@ pub trait Parsable : Sized {
 }
 
 impl Parsable for String {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
         match iter.peek().cloned() {
-            Some(val) => {
+            Some((_, val)) => {
                 // Split arguments of the form "--foo=bar" to "--foo" and "bar"
                 let split: Vec<&str> = val.splitn(2, "=").collect();
                 if split[0] == option {
@@ -66,7 +66,7 @@ impl Parsable for String {
                         Some(split[1].to_string())
                     }
                     else {
-                        iter.next()
+                        iter.next().map(|x| x.1)
                     };
 
                     match value {
@@ -84,10 +84,23 @@ impl Parsable for String {
     }
 }
 
+#[test]
+pub fn test_parsable_for_string() {
+    let args_vec = vec!["--foo", "bar"];
+    let mut args = args_vec.iter()
+        .map(|x| x.to_string())
+        .enumerate()
+        .peekable();
+
+    let result = <String as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    assert_eq!(result.parsed, Some(Ok("bar".into())));
+    assert_eq!(result.blacklist, Some("--foo".into()));
+}
+
 impl Parsable for bool {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
         match iter.peek().cloned() {
-            Some(key) => {
+            Some((_, key)) => {
                 if key == option.as_ref() {
                     iter.next();
                     ParseResult::success(true, Some(option.clone()))
@@ -101,8 +114,21 @@ impl Parsable for bool {
     }
 }
 
+#[test]
+pub fn test_parsable_for_bool() {
+    let args_vec = vec!["--foo"];
+    let mut args = args_vec.iter()
+        .map(|x| x.to_string())
+        .enumerate()
+        .peekable();
+
+    let result = <bool as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    assert_eq!(result.parsed, Some(Ok(true)));
+    assert_eq!(result.blacklist, Some("--foo".into()));
+}
+
 impl<T : Parsable> Parsable for Option<T> {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
         let result = T::parse_arg(iter, option);
         match result.parsed {
             Some(Ok(val)) => ParseResult::success(Some(val), Some(option.clone())),
@@ -112,8 +138,21 @@ impl<T : Parsable> Parsable for Option<T> {
     }
 }
 
+#[test]
+pub fn test_parsable_for_option() {
+    let args_vec = vec!["--foo", "bar"];
+    let mut args = args_vec.iter()
+        .map(|x| x.to_string())
+        .enumerate()
+        .peekable();
+
+    let result = <Option<String> as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    assert_eq!(result.parsed, Some(Ok(Some("bar".into()))));
+    assert_eq!(result.blacklist, Some("--foo".into()));
+}
+
 impl<T : Parsable> Parsable for Vec<T> {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = String> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
         let result = T::parse_arg(iter, option);
         match result.parsed {
             Some(Ok(val)) => ParseResult::success(vec![val], None),
@@ -126,4 +165,22 @@ impl<T : Parsable> Parsable for Vec<T> {
         lhs.append(&mut rhs);
         return lhs;
     }
+}
+
+#[test]
+pub fn test_parsable_for_vec() {
+    let args_vec = vec!["--foo", "bar", "--foo", "baz"];
+    let mut args = args_vec.iter()
+        .map(|x| x.to_string())
+        .enumerate()
+        .peekable();
+
+    let tmp1 = <Vec<String> as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    let tmp2 = <Vec<String> as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+
+    let result = <Vec<String> as Parsable>::assign(tmp1.parsed.unwrap().unwrap(), tmp2.parsed.unwrap().unwrap());
+
+    assert_eq!(result, vec!["bar".to_string(), "baz".to_string()]);
+    assert_eq!(tmp1.blacklist, None);
+    assert_eq!(tmp2.blacklist, None);
 }
