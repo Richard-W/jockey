@@ -38,5 +38,5 @@ pub use result::Error;
 pub use result::Result;
 
 mod parsable;
-pub use parsable::Parsable;
+pub use parsable::ParsableWithOption;
 pub use parsable::ParseResult;

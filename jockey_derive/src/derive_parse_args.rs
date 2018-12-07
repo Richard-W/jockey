@@ -7,7 +7,7 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
     let span = ident.span();
     quote_spanned!{span=>
         {
-            let parse_result = <#ty as jockey::Parsable>::parse_arg(&mut iter, Some(#option.to_string()));
+            let parse_result = <#ty as jockey::ParsableWithOption>::parse_arg(&mut iter, &#option.to_string());
             match parse_result.blacklist {
                 Some(val) => {
                     blacklist.insert(val.to_string());
@@ -16,7 +16,7 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
             }
             match parse_result.parsed {
                 Some(Ok(val)) => {
-                    result.#ident = <#ty as jockey::Parsable>::assign(result.#ident, val);
+                    result.#ident = <#ty as jockey::ParsableWithOption>::assign(result.#ident, val);
                     continue;
                 },
                 Some(Err(err)) => return Err(err),
