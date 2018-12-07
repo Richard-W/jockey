@@ -24,7 +24,7 @@ extern crate quote;
 extern crate derive_new;
 
 mod derive_parse_args;
-mod util;
+mod parser;
 
 /// Implementation of `#[derive(Arguments)]` (don't use this directly).
 #[proc_macro_derive(Arguments, attributes(jockey))]

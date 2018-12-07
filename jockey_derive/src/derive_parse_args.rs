@@ -1,4 +1,4 @@
-use util;
+use parser;
 
 use proc_macro2::{TokenStream};
 use syn::{Ident, Type};
@@ -27,12 +27,12 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
 }
 
 pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
-    match util::parse_data(input) {
-        util::Data::Struct(data) => {
+    match parser::parse_data(input) {
+        parser::Data::Struct(data) => {
             let mut parser_components = quote! {};
-            let mut unknown_args_field: Option<util::UnknownField> = None;
+            let mut unknown_args_field: Option<parser::UnknownField> = None;
             for field in data.fields { match field {
-                util::Field::Ordinary(field) => {
+                parser::Field::Ordinary(field) => {
                     match field.long {
                         Some(option) => {
                             parser_components.extend(get_parser_component(&field.ident, &field.ty, &option));
@@ -46,7 +46,7 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                         None => {},
                     }
                 },
-                util::Field::Unknown(field) => {
+                parser::Field::Unknown(field) => {
                     if unknown_args_field.is_some() {
                         panic!("Only one unknown_args field may be defined");
                     }
