@@ -20,6 +20,8 @@ extern crate proc_macro2;
 extern crate syn;
 #[macro_use]
 extern crate quote;
+#[macro_use]
+extern crate derive_new;
 
 mod derive_parse_args;
 mod util;
