@@ -37,11 +37,12 @@ impl<T> ParseResult<T> {
     }
 }
 
-/// Implemented by types parsable in Arguments::parse_args().
-pub trait Parsable : Sized {
+/// Implemented for types parsable with an option like "--foo" in Arguments::parse_args().
+pub trait ParsableWithOption : Sized {
 
     /// Parse the next argument on the iterator if possible.
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)>;
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>;
 
     /// Assigns the right hand side to the left hand side and returns the result.
     ///
@@ -52,8 +53,18 @@ pub trait Parsable : Sized {
     }
 }
 
-impl Parsable for String {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
+/// Implemented for types parsable with a position in Arguments::parse_args().
+pub trait ParsableWithPosition : Sized {
+
+    /// Parse the next argument on the iterator if possible.
+    fn parse_arg<I>(iter: &mut Peekable<I>, position: usize) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>;
+}
+
+impl ParsableWithOption for String {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
         match iter.peek().cloned() {
             Some((_, val)) => {
                 // Split arguments of the form "--foo=bar" to "--foo" and "bar"
@@ -92,13 +103,15 @@ pub fn test_parsable_for_string() {
         .enumerate()
         .peekable();
 
-    let result = <String as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    let result = <String as ParsableWithOption>::parse_arg(&mut args, &"--foo".to_string());
     assert_eq!(result.parsed, Some(Ok("bar".into())));
     assert_eq!(result.blacklist, Some("--foo".into()));
 }
 
-impl Parsable for bool {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
+impl ParsableWithOption for bool {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
         match iter.peek().cloned() {
             Some((_, key)) => {
                 if key == option.as_ref() {
@@ -122,16 +135,18 @@ pub fn test_parsable_for_bool() {
         .enumerate()
         .peekable();
 
-    let result = <bool as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    let result = <bool as ParsableWithOption>::parse_arg(&mut args, &"--foo".to_string());
     assert_eq!(result.parsed, Some(Ok(true)));
     assert_eq!(result.blacklist, Some("--foo".into()));
 }
 
-impl<T : Parsable> Parsable for Option<T> {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
+impl<T : ParsableWithOption> ParsableWithOption for Option<T> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
         let result = T::parse_arg(iter, option);
         match result.parsed {
-            Some(Ok(val)) => ParseResult::success(Some(val), Some(option.clone())),
+            Some(Ok(val)) => ParseResult::success(Some(val), result.blacklist),
             Some(Err(err)) => ParseResult::err(err),
             None => ParseResult::none(),
         }
@@ -146,13 +161,15 @@ pub fn test_parsable_for_option() {
         .enumerate()
         .peekable();
 
-    let result = <Option<String> as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    let result = <Option<String> as ParsableWithOption>::parse_arg(&mut args, &"--foo".to_string());
     assert_eq!(result.parsed, Some(Ok(Some("bar".into()))));
     assert_eq!(result.blacklist, Some("--foo".into()));
 }
 
-impl<T : Parsable> Parsable for Vec<T> {
-    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self> where I: Iterator<Item = (usize, String)> {
+impl<T : ParsableWithOption> ParsableWithOption for Vec<T> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, option: &String) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
         let result = T::parse_arg(iter, option);
         match result.parsed {
             Some(Ok(val)) => ParseResult::success(vec![val], None),
@@ -175,12 +192,46 @@ pub fn test_parsable_for_vec() {
         .enumerate()
         .peekable();
 
-    let tmp1 = <Vec<String> as Parsable>::parse_arg(&mut args, &"--foo".to_string());
-    let tmp2 = <Vec<String> as Parsable>::parse_arg(&mut args, &"--foo".to_string());
+    let tmp1 = <Vec<String> as ParsableWithOption>::parse_arg(&mut args, &"--foo".to_string());
+    let tmp2 = <Vec<String> as ParsableWithOption>::parse_arg(&mut args, &"--foo".to_string());
 
-    let result = <Vec<String> as Parsable>::assign(tmp1.parsed.unwrap().unwrap(), tmp2.parsed.unwrap().unwrap());
+    let result = <Vec<String> as ParsableWithOption>::assign(tmp1.parsed.unwrap().unwrap(), tmp2.parsed.unwrap().unwrap());
 
     assert_eq!(result, vec!["bar".to_string(), "baz".to_string()]);
     assert_eq!(tmp1.blacklist, None);
     assert_eq!(tmp2.blacklist, None);
+}
+
+impl ParsableWithPosition for String {
+    fn parse_arg<I>(iter: &mut Peekable<I>, position: usize) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
+        match iter.peek().cloned() {
+            Some((pos, ref val)) => {
+                println!("TEST: {}, {}", pos, val);
+            },
+            _ => {},
+        }
+
+        match iter.peek().cloned() {
+            Some((pos, ref val)) if pos == position => {
+                iter.next();
+                ParseResult::success(val.to_string(), None)
+            },
+            _ => ParseResult::none(),
+        }
+    }
+}
+
+impl<T : ParsableWithPosition> ParsableWithPosition for Option<T> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, position: usize) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
+        let result = <T as ParsableWithPosition>::parse_arg(iter, position);
+        match result.parsed {
+            Some(Ok(val)) => ParseResult::success(Some(val), result.blacklist),
+            Some(Err(err)) => ParseResult::err(err),
+            None => ParseResult::none(),
+        }
+    }
 }

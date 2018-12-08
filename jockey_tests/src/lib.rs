@@ -176,8 +176,31 @@ pub fn parse_unknown_args() {
 
 #[test]
 pub fn parse_multi_args() {
-        let actual = parse2(&vec!["dummy", "--multi", "a1", "--multi", "a2"]).unwrap();
-        let mut expected = TestArguments2::default();
-        expected.multi = vec!["a1".into(), "a2".into()];
-        assert_eq!(actual, expected);
+    let actual = parse2(&vec!["dummy", "--multi", "a1", "--multi", "a2"]).unwrap();
+    let mut expected = TestArguments2::default();
+    expected.multi = vec!["a1".into(), "a2".into()];
+    assert_eq!(actual, expected);
+}
+
+#[derive(Arguments, Default, Debug, PartialEq)]
+struct TestArguments3 {
+    #[jockey(position=1)]
+    pub subcommand: Option<String>,
+
+    pub flag: bool,
+}
+
+#[cfg(test)]
+fn parse3(args: &Vec<&str>) -> Result<TestArguments3> {
+    let iter = args.into_iter().map(|x| x.to_string());
+    <TestArguments3 as Arguments>::parse_args(iter)
+}
+
+#[test]
+pub fn parse_positional_args() {
+    let actual = parse3(&vec!["dummy", "subcommand", "--flag"]).unwrap();
+    let mut expected = TestArguments3::default();
+    expected.subcommand = Some("subcommand".to_string());
+    expected.flag = true;
+    assert_eq!(actual, expected);
 }

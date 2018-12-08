@@ -1,13 +1,13 @@
-use util;
+use parser;
 
 use proc_macro2::{TokenStream};
 use syn::{Ident, Type};
 
-fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStream {
+fn get_parser_component(ident: &Ident, ty: &Type, parse_expression: TokenStream) -> TokenStream {
     let span = ident.span();
     quote_spanned!{span=>
         {
-            let parse_result = <#ty as jockey::Parsable>::parse_arg(&mut iter, &#option.to_string());
+            let parse_result = #parse_expression;
             match parse_result.blacklist {
                 Some(val) => {
                     blacklist.insert(val.to_string());
@@ -16,7 +16,7 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
             }
             match parse_result.parsed {
                 Some(Ok(val)) => {
-                    result.#ident = <#ty as jockey::Parsable>::assign(result.#ident, val);
+                    result.#ident = <#ty as jockey::ParsableWithOption>::assign(result.#ident, val);
                     continue;
                 },
                 Some(Err(err)) => return Err(err),
@@ -26,88 +26,99 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
     }
 }
 
+fn get_parser_component_option(ident: &Ident, ty: &Type, option: &String) -> TokenStream {
+    get_parser_component(ident, ty, quote!{
+        <#ty as jockey::ParsableWithOption>::parse_arg(&mut iter, &#option.to_string())
+    })
+}
+
+fn get_parser_component_position(ident: &Ident, ty: &Type, position: u64) -> TokenStream {
+    get_parser_component(ident, ty, quote!{
+        <#ty as jockey::ParsableWithPosition>::parse_arg(&mut iter, #position as usize);
+    })
+}
+
 pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
-    let struct_def = util::derive_input_to_struct_def(input);
+    match parser::parse_data(input) {
+        parser::Data::Struct(data) => {
+            let mut parser_components = quote! {};
+            let mut unknown_args_field: Option<parser::UnknownField> = None;
+            for field in data.fields { match field {
+                parser::Field::Ordinary(field) => {
+                    match field.long {
+                        Some(option) => {
+                            parser_components.extend(get_parser_component_option(&field.ident, &field.ty, &option));
+                        },
+                        None => {},
+                    }
+                    match field.short {
+                        Some(option) => {
+                            parser_components.extend(get_parser_component_option(&field.ident, &field.ty, &option));
+                        },
+                        None => {},
+                    }
+                },
+                parser::Field::Unknown(field) => {
+                    if unknown_args_field.is_some() {
+                        panic!("Only one unknown_args field may be defined");
+                    }
+                    unknown_args_field = Some(field);
+                },
 
-    let mut parser_components = quote! {};
-
-    let mut unknown_args_field: Option<util::StructField> = None;
-
-    for ref field in struct_def.fields {
-        if field.unknown_args {
-            if unknown_args_field.is_some() {
-                panic!("Only one unknown_args field may be defined");
-            }
-            unknown_args_field = Some(field.clone());
-        }
-
-        match &field.long_option {
-            Some(ref long_option) => {
-                let long_option = String::from("--") + long_option;
-                parser_components.extend(get_parser_component(&field.ident, &field.ty, &long_option));
-            },
-            None => {},
-        }
-
-        match &field.short_option {
-            Some(ref short_option) => {
-                let short_option = String::from("-") + short_option;
-                parser_components.extend(get_parser_component(&field.ident, &field.ty, &short_option));
-            }
-            None => {},
-        }
-    }
-
-    let unknown_args_component = match unknown_args_field {
-        Some(field) => {
-            let field_ident = &field.ident;
-            let field_type = &field.ty;
-            let span = field_ident.span();
-
-            quote_spanned!{span=>
-                match iter.next() {
-                    Some((_, value)) => <#field_type as std::iter::Extend<String>>::extend(&mut result.#field_ident, std::iter::once(value)),
-                    None => {},
+                parser::Field::Position(field) => {
+                    parser_components.extend(get_parser_component_position(&field.ident, &field.ty, field.position));
                 }
-            }
-        }
-        None => quote! {
-            return Err(jockey::Error::UnknownOption(iter.peek().unwrap().1.to_string()));
-        },
-    };
+            }}
 
-    let struct_ident = &struct_def.ident;
-    let result = quote!{
-        fn parse_args<I> (args: I) -> jockey::Result<#struct_ident> where I : Iterator<Item = String> {
-            let mut result = <#struct_ident as Default>::default();
-            let mut blacklist: std::collections::HashSet<String> = std::collections::HashSet::new();
-
-            let mut iter = args.enumerate().peekable();
-
-            // Skip first argument which is the executable path.
-            iter.next();
-
-            loop {
-                match iter.peek() {
-                    Some((_, arg)) => {
-                        if blacklist.contains(arg) {
-                            return Err(jockey::Error::DuplicateOption(arg.to_string()));
+            let unknown_args_component = match unknown_args_field {
+                Some(field) => {
+                    let ident = &field.ident;
+                    let ty = &field.ty;
+                    let span = ident.span();
+                    quote_spanned! { span =>
+                        match iter.next() {
+                            Some((_, value)) => <#ty as std::iter::Extend<String>>::extend(&mut result.#ident, std::iter::once(value)),
+                            None => {},
                         }
-                    },
-                    None => {
-                        break;
-                    },
+                    }
+                },
+                None => quote! {
+                    return Err(jockey::Error::UnknownOption(iter.peek().unwrap().1.to_string()));
+                },
+            };
+
+            let struct_ident = &input.ident;
+            quote! {
+                fn parse_args<I> (args: I) -> jockey::Result<#struct_ident> where I : Iterator<Item = String> {
+                    let mut result = <#struct_ident as Default>::default();
+                    let mut blacklist: std::collections::HashSet<String> = std::collections::HashSet::new();
+                    let mut iter = args.enumerate().peekable();
+
+                    // Skip first argument which is the executable path.
+                    iter.next();
+
+                    loop {
+                        match iter.peek() {
+                            Some((_, arg)) => {
+                                if blacklist.contains(arg) {
+                                    return Err(jockey::Error::DuplicateOption(arg.to_string()));
+                                }
+                            },
+                            None => {
+                                break;
+                            },
+                        }
+                        if iter.peek().is_none() { break; }
+
+                        #parser_components
+
+                        #unknown_args_component
+                    }
+
+                    Ok(result)
                 }
-                if iter.peek().is_none() { break; }
-
-                #parser_components
-
-                #unknown_args_component
             }
-
-            Ok(result)
-        }
-    };
-    result.into()
+        },
+    }.into()
 }
 

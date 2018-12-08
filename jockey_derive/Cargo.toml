@@ -11,9 +11,13 @@ publish = false
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "0.4.24"
-quote = "0.6.10"
-syn = "0.15.22"
+proc-macro2 = "0.4"
+quote = "0.6"
+derive-new = "0.5"
+
+[dependencies.syn]
+version = "0.15"
+features = ["extra-traits"]
 
 [dev-dependencies]
 jockey = { version="^0", path = "../jockey" }
