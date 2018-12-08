@@ -186,6 +186,8 @@ pub fn parse_multi_args() {
 struct TestArguments3 {
     #[jockey(position=1)]
     pub subcommand: Option<String>,
+
+    pub flag: bool,
 }
 
 #[cfg(test)]
@@ -196,8 +198,9 @@ fn parse3(args: &Vec<&str>) -> Result<TestArguments3> {
 
 #[test]
 pub fn parse_positional_args() {
-    let actual = parse3(&vec!["dummy", "subcommand"]).unwrap();
+    let actual = parse3(&vec!["dummy", "subcommand", "--flag"]).unwrap();
     let mut expected = TestArguments3::default();
     expected.subcommand = Some("subcommand".to_string());
+    expected.flag = true;
     assert_eq!(actual, expected);
 }
