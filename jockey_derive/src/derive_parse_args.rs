@@ -3,11 +3,11 @@ use parser;
 use proc_macro2::{TokenStream};
 use syn::{Ident, Type};
 
-fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStream {
+fn get_parser_component(ident: &Ident, ty: &Type, parse_expression: TokenStream) -> TokenStream {
     let span = ident.span();
     quote_spanned!{span=>
         {
-            let parse_result = <#ty as jockey::ParsableWithOption>::parse_arg(&mut iter, &#option.to_string());
+            let parse_result = #parse_expression;
             match parse_result.blacklist {
                 Some(val) => {
                     blacklist.insert(val.to_string());
@@ -26,6 +26,18 @@ fn get_parser_component(ident: &Ident, ty: &Type, option: &String) -> TokenStrea
     }
 }
 
+fn get_parser_component_option(ident: &Ident, ty: &Type, option: &String) -> TokenStream {
+    get_parser_component(ident, ty, quote!{
+        <#ty as jockey::ParsableWithOption>::parse_arg(&mut iter, &#option.to_string())
+    })
+}
+
+fn get_parser_component_position(ident: &Ident, ty: &Type, position: u64) -> TokenStream {
+    get_parser_component(ident, ty, quote!{
+        <#ty as jockey::ParsableWithPosition>::parse_arg(&mut iter, #position as usize);
+    })
+}
+
 pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
     match parser::parse_data(input) {
         parser::Data::Struct(data) => {
@@ -35,13 +47,13 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 parser::Field::Ordinary(field) => {
                     match field.long {
                         Some(option) => {
-                            parser_components.extend(get_parser_component(&field.ident, &field.ty, &option));
+                            parser_components.extend(get_parser_component_option(&field.ident, &field.ty, &option));
                         },
                         None => {},
                     }
                     match field.short {
                         Some(option) => {
-                            parser_components.extend(get_parser_component(&field.ident, &field.ty, &option));
+                            parser_components.extend(get_parser_component_option(&field.ident, &field.ty, &option));
                         },
                         None => {},
                     }
@@ -52,6 +64,10 @@ pub fn derive_parse_args(input: &syn::DeriveInput) -> proc_macro2::TokenStream {
                     }
                     unknown_args_field = Some(field);
                 },
+
+                parser::Field::Position(field) => {
+                    parser_components.extend(get_parser_component_position(&field.ident, &field.ty, field.position));
+                }
             }}
 
             let unknown_args_component = match unknown_args_field {

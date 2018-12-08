@@ -37,7 +37,7 @@ impl<T> ParseResult<T> {
     }
 }
 
-/// Implemented by types parsable in Arguments::parse_args().
+/// Implemented for types parsable with an option like "--foo" in Arguments::parse_args().
 pub trait ParsableWithOption : Sized {
 
     /// Parse the next argument on the iterator if possible.
@@ -51,6 +51,14 @@ pub trait ParsableWithOption : Sized {
     fn assign(_lhs: Self, rhs: Self) -> Self {
         return rhs;
     }
+}
+
+/// Implemented for types parsable with a position in Arguments::parse_args().
+pub trait ParsableWithPosition : Sized {
+
+    /// Parse the next argument on the iterator if possible.
+    fn parse_arg<I>(iter: &mut Peekable<I>, position: usize) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>;
 }
 
 impl ParsableWithOption for String {
@@ -192,4 +200,38 @@ pub fn test_parsable_for_vec() {
     assert_eq!(result, vec!["bar".to_string(), "baz".to_string()]);
     assert_eq!(tmp1.blacklist, None);
     assert_eq!(tmp2.blacklist, None);
+}
+
+impl ParsableWithPosition for String {
+    fn parse_arg<I>(iter: &mut Peekable<I>, position: usize) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
+        match iter.peek().cloned() {
+            Some((pos, ref val)) => {
+                println!("TEST: {}, {}", pos, val);
+            },
+            _ => {},
+        }
+
+        match iter.peek().cloned() {
+            Some((pos, ref val)) if pos == position => {
+                iter.next();
+                ParseResult::success(val.to_string(), None)
+            },
+            _ => ParseResult::none(),
+        }
+    }
+}
+
+impl<T : ParsableWithPosition> ParsableWithPosition for Option<T> {
+    fn parse_arg<I>(iter: &mut Peekable<I>, position: usize) -> ParseResult<Self>
+        where I: Iterator<Item = (usize, String)>
+    {
+        let result = <T as ParsableWithPosition>::parse_arg(iter, position);
+        match result.parsed {
+            Some(Ok(val)) => ParseResult::success(Some(val), result.blacklist),
+            Some(Err(err)) => ParseResult::err(err),
+            None => ParseResult::none(),
+        }
+    }
 }
